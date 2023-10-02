@@ -1,0 +1,194 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+// Khach Hang
+model KhachHang {
+    MaKhachHang String @id // Sync với database thay vì tự đạo
+    Email       String @unique
+    HoTen       String
+    SDT         String @unique
+    DiaChi      String
+    MatKhau     String // Phiên Bản Hash của mật khẩu thay vì là mật khẩu gốc
+
+    // Tạo liên kết với bảng LoaiThanhVien
+    LoadTV LoadThanhVien @relation(fields: [MaTV], references: [MaLKH])
+    MaTV   String
+}
+
+model LoadThanhVien {
+    MaLKH   String @id
+    TenLoad String
+
+    KhachHang KhachHang[]
+
+    PhamViKhuyenMai PhamViKhuyenMai @relation(fields: [MaLKH], references: [MaLKH])
+}
+
+// Khuyen Ma
+model KhuyenMai {
+    MaKhuyenMai String   @id // Mã không tự động tạo, đề cho admin tự quyết định mã
+    TenKM       String
+    NgayBD      DateTime
+    NgayKT      DateTime
+    UuDai       Float // Giảm bao nhiêu phần %
+    NoiDung     String
+
+    PhamViKhuyenMai PhamViKhuyenMai?
+}
+
+model PhamViKhuyenMai {
+    MaKhuyenMai String @unique
+    MaSPM       String @unique
+    MaLKH       String @unique
+
+    KhuyenMai     KhuyenMai       @relation(fields: [MaKhuyenMai], references: [MaKhuyenMai])
+    SanPhamMau    SanPhamMau[]
+    LoadThanhVien LoadThanhVien[]
+
+    @@id([MaKhuyenMai, MaSPM, MaLKH])
+}
+
+// Sản phẩm mẫu
+model SanPhamMau {
+    MaSPM     String @id @default(uuid()) // Tự động tạo 1 mã UUID 
+    TenSP     String
+    MoTa      String
+    TrangThai String
+
+    HinhAnh        HinhAnh[] // 1 Sản phẩm có thể có nhiều hình ảnh
+    DanhGia        DanhGia[] // 1 Sản phẩm có thể có nhiều đánh giá
+    SanPhamBienThe SanPhamBienThe[]
+    MatHang        MatHang[]
+
+    ThongSoKyThuat ThongSoKyThuat?
+
+    // 1 sản phẩm chỉ có thể có 1 nhà sẩn xuất
+    HSX   HangSanXuat @relation(fields: [MaHSX], references: [MaHSX])
+    MaHSX String
+
+    // Khuyen Mai
+    PhamViKhuyenMai PhamViKhuyenMai @relation(fields: [MaSPM], references: [MaSPM])
+}
+
+model ThongSoKyThuat {
+    MaThongSo String @id @default(uuid())
+
+    ManHinh    String
+    HeDieuHanh String
+    CamTruoc   String
+    CamSau     String
+    Chip       String
+    RAM        String
+    DungLuon   String
+    SIM        String
+    Pin        String
+
+    SanPham SanPhamMau @relation(fields: [MaSPM], references: [MaSPM])
+    MaSPM   String     @unique
+}
+
+model DanhGia {
+    MaDanhGia  String @id @default(uuid())
+    TenNguoiDG String
+    NoiDungDG  String
+    SoSao      Int
+
+    SanPhamMau SanPhamMau @relation(fields: [MaSPM], references: [MaSPM])
+    MaSPM      String
+}
+
+model HangSanXuat {
+    MaHSX  String @id @default(uuid())
+    TenHSX String
+    Logo   String
+
+    // 1 nhà sản xuất có thể có nhiều sản phẩm
+    SanPhamMau SanPhamMau[]
+}
+
+model HinhAnh {
+    MaHA    String @id @default(uuid())
+    TenHinh String
+    Url     String
+
+    // 1 Hình ảnh chỉ có thể có ở 1 sản phẩm
+    SanPham SanPhamMau @relation(fields: [MaSPM], references: [MaSPM])
+    MaSPM   String
+}
+
+// Don Hang
+model DonHang {
+    MaDonHang    String   @id @default(uuid())
+    Email        String
+    SDT          String
+    HoTen        String
+    DiaChi       String
+    PhuongThucTT String
+    TrangThai    String
+    TongTien     Float // Float vì số tiền có thể lẽ
+    NgayDat      DateTime
+
+    CT_DonHang CT_DonHang?
+}
+
+model CT_DonHang {
+    MaSP      String @unique
+    MaMH      String @unique
+    MaDonHang String @unique
+    SoLuong   Int
+
+    DonHang DonHang @relation(fields: [MaDonHang], references: [MaDonHang])
+
+    SanPham SanPhamBienThe[]
+    MatHang MatHang[]
+
+    @@id([MaSP, MaMH, MaDonHang])
+}
+
+model SanPhamBienThe {
+    MaSP      String @id @default(uuid())
+    DungLuong String
+    Mau       String
+    Gia       Float
+
+    SanPhamMau SanPhamMau @relation(fields: [MaSPM], references: [MaSPM])
+    MaSPM      String
+
+    CT_DonHang CT_DonHang @relation(fields: [MaSP], references: [MaSP])
+
+    MatHang MatHang[]
+}
+
+model MatHang {
+    MaMH     String   @id @default(uuid())
+    TonKho   String
+    NgayNhap DateTime
+
+    SanPham SanPhamBienThe @relation(fields: [MaSP], references: [MaSP])
+    MaSP    String
+
+    SanPhamMau SanPhamMau @relation(fields: [MaSPM], references: [MaSPM])
+    MaSPM      String
+
+    CT_DonHang CT_DonHang @relation(fields: [MaMH], references: [MaMH])
+
+    MatHangDaBan MatHangDaBan[]
+}
+
+model MatHangDaBan {
+    MaBan String @id @default(uuid())
+    Email String
+    TenKH String
+
+    MaMH    String
+    MatHang MatHang @relation(fields: [MaMH], references: [MaMH])
+}
