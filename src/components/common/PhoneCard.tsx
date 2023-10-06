@@ -25,7 +25,7 @@ export const PhoneCard = () => {
 
 	return (
 		<>
-			<Card shadow="sm" className="relative px-2 py-4">
+			<Card isHoverable isPressable shadow="sm" className="relative px-2 py-4">
 				{typeof data.sales === "number" && (
 					<Chip className="absolute right-2 top-2 z-50" color="danger">
 						Giảm {data.sales}%

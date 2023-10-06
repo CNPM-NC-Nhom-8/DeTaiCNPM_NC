@@ -28,7 +28,7 @@ export const MainNavbar = () => {
 	const [cardCount] = useAtom(countAtom);
 
 	return (
-		<Navbar isBordered shouldHideOnScroll>
+		<Navbar isBordered shouldHideOnScroll classNames={{ wrapper: "max-w-6xl" }}>
 			<NavbarBrand>
 				<Link href="/">
 					<p className="font-bold text-inherit">CellPhoneX</p>

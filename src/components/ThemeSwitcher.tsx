@@ -1,6 +1,6 @@
 "use client";
 
-import { Switch } from "@nextui-org/react";
+import { Button, Switch } from "@nextui-org/react";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 
@@ -17,13 +17,12 @@ export function ThemeSwitcher() {
 	if (!mounted) return null;
 
 	return (
-		<Switch
-			isSelected={theme === "light"}
-			onValueChange={() => setTheme(theme === "dark" ? "light" : "dark")}
-			defaultSelected
-			color="success"
-			startContent={<Sun />}
-			endContent={<Moon />}
+		<Button
+			isIconOnly
+			size="sm"
+			radius="full"
+			onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+			startContent={theme === "dark" ? <Moon size={20} /> : <Sun size={20} />}
 		/>
 	);
 }

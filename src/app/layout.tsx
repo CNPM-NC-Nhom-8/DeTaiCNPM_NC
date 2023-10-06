@@ -1,9 +1,10 @@
 import "./globals.css";
 import type { Metadata } from "next";
-
 import { Inter } from "next/font/google";
+
 import { ClerkProvider } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
+import { viVN } from "@clerk/localizations";
 
 import { Toaster } from "react-hot-toast";
 
@@ -22,7 +23,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
 	return (
-		<ClerkProvider>
+		<ClerkProvider appearance={{ baseTheme: dark }} localization={viVN}>
 			<html lang="en">
 				<body className={inter.className}>
 					<MainLayout>
