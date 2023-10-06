@@ -158,7 +158,7 @@ export default function Page({ params: { phone: encodePhone } }: { params: { pho
 								style={{ translate: -Math.abs(data.image.indexOf(currentImage)) + "00%" }}
 							>
 								{data.image.map((item) => (
-									<div className="flex min-w-full flex-shrink-0 flex-grow [&>div]:w-full [&>div]:!max-w-full">
+									<div key={item} className="flex min-w-full flex-shrink-0 flex-grow [&>div]:w-full [&>div]:!max-w-full">
 										<Image
 											src={item}
 											key={item}
@@ -231,6 +231,7 @@ export default function Page({ params: { phone: encodePhone } }: { params: { pho
 						{size.map((item, index) => {
 							return (
 								<Badge
+									key={item.size + "-" + index}
 									content={<CheckIcon size={16} />}
 									isInvisible={selectedSize !== item.size}
 									disableOutline
@@ -258,6 +259,7 @@ export default function Page({ params: { phone: encodePhone } }: { params: { pho
 						{colors.map((item, index) => {
 							return (
 								<Badge
+									key={item.name + "-" + index}
 									disableOutline
 									content={<CheckIcon size={16} />}
 									isInvisible={selectedColor !== item.name}

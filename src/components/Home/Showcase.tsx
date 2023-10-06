@@ -73,12 +73,8 @@ export const Showcase = () => {
 
 					<div className="flex w-full transition-all" style={{ translate: -Math.abs(images.indexOf(currentTab)) + "00%" }}>
 						{images.map((item) => (
-							<div className="flex min-w-full flex-shrink-0 flex-grow [&>div]:w-full [&>div]:!max-w-full">
-								<Image
-									src={item.src}
-									key={item.key}
-									className="w-full flex-shrink-0 flex-grow rounded-b-none rounded-t-lg"
-								/>
+							<div key={item.key} className="flex min-w-full flex-shrink-0 flex-grow [&>div]:w-full [&>div]:!max-w-full">
+								<Image src={item.src} className="w-full flex-shrink-0 flex-grow rounded-b-none rounded-t-lg" />
 							</div>
 						))}
 					</div>
