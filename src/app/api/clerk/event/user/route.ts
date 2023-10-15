@@ -31,7 +31,7 @@ export async function POST(request: Request) {
 					AnhDaiDien: data.image_url,
 					Email: main_email.email_address,
 					MaTaiKhoan: data.id,
-					SDT: main_phoneNum.phone_number,
+					SDT: main_phoneNum?.phone_number,
 					Ho: data.last_name,
 					Ten: data.first_name,
 					TenTaiKhoan: data.username,
@@ -70,7 +70,7 @@ export async function POST(request: Request) {
 				data: {
 					AnhDaiDien: data.image_url,
 					Email: main_email.email_address,
-					SDT: main_phoneNum.phone_number,
+					SDT: main_phoneNum?.phone_number,
 					Ho: data.last_name,
 					Ten: data.first_name,
 					TenTaiKhoan: data.username,
