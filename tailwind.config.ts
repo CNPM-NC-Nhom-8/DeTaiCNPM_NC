@@ -9,12 +9,14 @@ const config: Config = {
 		"./node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}",
 	],
 	theme: {
-		extend: {},
-		container: { center: true },
+		container: {
+			center: true,
+			padding: "1.5rem",
+			screens: { "2xl": "1400px" },
+		},
 	},
 	darkMode: "class",
 	plugins: [nextui()],
-	daisyui: { themes: [] },
 };
 export default config;
 

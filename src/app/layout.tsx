@@ -3,18 +3,21 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 
 import { ClerkProvider } from "@clerk/nextjs";
-import { dark } from "@clerk/themes";
 import { viVN } from "@clerk/localizations";
 
 import { Toaster } from "react-hot-toast";
 
 import { MainLayout } from "@/components/layout/mainLayout";
 import { MainNavbar } from "@/components/layout/mainNavbar";
+import { BottomFooter } from "@/components/layout/BottomFooter";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-	title: "CellPhoneX - Nơi bán điện thoại chính hãng giá tốt nhất",
+	title: {
+		template: "%s - CellPhoneX",
+		default: "CellPhoneX - Nơi bán điện thoại chính hãng giá tốt nhất",
+	},
 	description:
 		"CellPhoneX - Nơi bán điện thoại chính hãng Apple, Samsung, Oppo, Xiaomi giá rẻ nhất thị trường. Giao hàng nhanh trong 24h. Bảo hành 12 tháng chính hãng.",
 	viewport: { initialScale: 1, maximumScale: 1 },
@@ -23,20 +26,16 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
 	return (
-		<ClerkProvider appearance={{ baseTheme: dark }} localization={viVN}>
+		<ClerkProvider localization={viVN}>
 			<html lang="en">
 				<body className={inter.className}>
 					<MainLayout>
 						<MainNavbar />
 						{children}
+						<BottomFooter />
 					</MainLayout>
 
-					<Toaster
-						toastOptions={{
-							position: "top-right",
-							style: { borderRadius: "12px", background: "#333", color: "#fff" },
-						}}
-					/>
+					<Toaster toastOptions={{ position: "top-right", style: { borderRadius: "12px", background: "#333", color: "#fff" } }} />
 				</body>
 			</html>
 		</ClerkProvider>

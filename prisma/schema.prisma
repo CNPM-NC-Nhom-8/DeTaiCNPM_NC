@@ -2,7 +2,8 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-    provider = "prisma-client-js"
+    provider        = "prisma-client-js"
+    previewFeatures = ["fullTextSearch"]
 }
 
 datasource db {
@@ -10,30 +11,78 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
+enum Role {
+    KhachHang
+    NhanVien
+    QuanTriVien
+}
+
+model CartItem {
+    MaCartItem String @id @default(uuid())
+
+    Type     String
+    Quantity Int
+
+    MaCart String @unique
+    Cart   Cart   @relation(fields: [MaCart], references: [MaCart])
+
+    MaSPM   String
+    SanPham SanPhamMau @relation(fields: [MaSPM], references: [MaSPM])
+}
+
+model Cart {
+    MaCart String @unique
+
+    MaKhachHang String
+    KhachHang   KhachHang @relation(fields: [MaKhachHang], references: [MaKhachHang])
+
+    CartItem CartItem[]
+
+    @@id([MaCart, MaKhachHang])
+}
+
+model TaiKhoan {
+    MaTaiKhoan String @id // Sync với database thay vì tự đạo
+
+    Ho          String?
+    Ten         String?
+    TenTaiKhoan String?
+    Email       String  @unique
+    SDT         String? @unique
+
+    NgayTaoTK  DateTime @default(now())
+    AnhDaiDien String
+
+    Role Role @default(KhachHang)
+
+    KhachHang KhachHang?
+}
+
 // Khach Hang
 model KhachHang {
-    MaKhachHang String @id // Sync với database thay vì tự đạo
-    Email       String @unique
-    HoTen       String
-    SDT         String @unique
-    DiaChi      String
-    MatKhau     String // Phiên Bản Hash của mật khẩu thay vì là mật khẩu gốc
+    MaKhachHang String  @id // Sync với database thay vì tự đạo
+    DiaChi      String?
 
     // Tạo liên kết với bảng LoaiThanhVien
-    LoadTV LoadThanhVien @relation(fields: [MaTV], references: [MaLKH])
-    MaTV   String
+    MaLKH         String
+    LoaiKhachHang LoaiKhachHang @relation(fields: [MaLKH], references: [MaLKH])
+
+    MaTaiKhoan String   @unique
+    TaiKhoan   TaiKhoan @relation(fields: [MaTaiKhoan], references: [MaTaiKhoan])
+
+    DanhGia DanhGia[]
+    Cart    Cart[]
 }
 
-model LoadThanhVien {
-    MaLKH   String @id
-    TenLoad String
+model LoaiKhachHang {
+    MaLKH     String @id @default(uuid())
+    TenLoaiTV String @unique
 
-    KhachHang KhachHang[]
-
-    PhamViKhuyenMai PhamViKhuyenMai @relation(fields: [MaLKH], references: [MaLKH])
+    KhachHang       KhachHang[]
+    PhamViKhuyenMai PhamViKhuyenMai[] // 1 Loại khách hàng có thể ở trong nhiều phạm vi 
 }
 
-// Khuyen Ma
+// Khuyen Mai
 model KhuyenMai {
     MaKhuyenMai String   @id // Mã không tự động tạo, đề cho admin tự quyết định mã
     TenKM       String
@@ -43,24 +92,27 @@ model KhuyenMai {
     NoiDung     String
 
     PhamViKhuyenMai PhamViKhuyenMai?
+    DonHang         DonHang[]
 }
 
 model PhamViKhuyenMai {
-    MaKhuyenMai String @unique
-    MaSPM       String @unique
-    MaLKH       String @unique
+    MaPhamViKhuyenMai String @id @default(uuid())
+
+    MaKhuyenMai String  @unique
+    MaSPM       String? @unique
+    MaLKH       String
 
     KhuyenMai     KhuyenMai       @relation(fields: [MaKhuyenMai], references: [MaKhuyenMai])
     SanPhamMau    SanPhamMau[]
-    LoadThanhVien LoadThanhVien[]
+    LoadThanhVien LoaiKhachHang[]
 
-    @@id([MaKhuyenMai, MaSPM, MaLKH])
+    @@unique([MaKhuyenMai, MaSPM, MaLKH])
 }
 
 // Sản phẩm mẫu
 model SanPhamMau {
     MaSPM     String @id @default(uuid()) // Tự động tạo 1 mã UUID 
-    TenSP     String
+    TenSP     String @unique
     MoTa      String
     TrangThai String
 
@@ -68,6 +120,7 @@ model SanPhamMau {
     DanhGia        DanhGia[] // 1 Sản phẩm có thể có nhiều đánh giá
     SanPhamBienThe SanPhamBienThe[]
     MatHang        MatHang[]
+    CartItem       CartItem[]
 
     ThongSoKyThuat ThongSoKyThuat?
 
@@ -76,7 +129,20 @@ model SanPhamMau {
     MaHSX String
 
     // Khuyen Mai
-    PhamViKhuyenMai PhamViKhuyenMai @relation(fields: [MaSPM], references: [MaSPM])
+    PhamViKhuyenMai PhamViKhuyenMai[]
+    FAQ             FAQ[]
+}
+
+model FAQ {
+    MaCauHoi String @id @default(uuid())
+
+    CauHoi String
+    TraLoi String
+
+    MaSPM      String
+    SanPhamMau SanPhamMau @relation(fields: [MaSPM], references: [MaSPM])
+
+    @@index([MaSPM])
 }
 
 model ThongSoKyThuat {
@@ -88,7 +154,7 @@ model ThongSoKyThuat {
     CamSau     String
     Chip       String
     RAM        String
-    DungLuon   String
+    DungLuong  String
     SIM        String
     Pin        String
 
@@ -97,13 +163,23 @@ model ThongSoKyThuat {
 }
 
 model DanhGia {
-    MaDanhGia  String @id @default(uuid())
-    TenNguoiDG String
-    NoiDungDG  String
-    SoSao      Int
+    MaDanhGia   String   @id @default(uuid())
+    NoiDungDG   String
+    SoSao       Int
+    NgayDanhGia DateTime @default(now())
+
+    MaTraLoi  String?
+    TraLoiCho DanhGia?  @relation("TraLoiCho", fields: [MaTraLoi], references: [MaDanhGia], onDelete: NoAction, onUpdate: NoAction)
+    TraLoiBoi DanhGia[] @relation("TraLoiCho")
 
     SanPhamMau SanPhamMau @relation(fields: [MaSPM], references: [MaSPM])
     MaSPM      String
+
+    TenKhachHang String?
+    MaKhachHang  String?
+    KhachHang    KhachHang? @relation(fields: [MaKhachHang], references: [MaKhachHang])
+
+    @@index([MaDanhGia, MaKhachHang])
 }
 
 model HangSanXuat {
@@ -137,21 +213,26 @@ model DonHang {
     TongTien     Float // Float vì số tiền có thể lẽ
     NgayDat      DateTime
 
-    CT_DonHang CT_DonHang?
+    CT_DonHang  CT_DonHang?
+    MaKhuyenMai String
+    KhuyenMai   KhuyenMai   @relation(fields: [MaKhuyenMai], references: [MaKhuyenMai])
 }
 
 model CT_DonHang {
-    MaSP      String @unique
+    MaCT_DH String @id @default(uuid())
+
+    MaSP      String
     MaMH      String @unique
     MaDonHang String @unique
-    SoLuong   Int
+
+    SoLuong Int
 
     DonHang DonHang @relation(fields: [MaDonHang], references: [MaDonHang])
 
     SanPham SanPhamBienThe[]
     MatHang MatHang[]
 
-    @@id([MaSP, MaMH, MaDonHang])
+    @@unique([MaSP, MaMH, MaDonHang])
 }
 
 model SanPhamBienThe {
@@ -163,7 +244,7 @@ model SanPhamBienThe {
     SanPhamMau SanPhamMau @relation(fields: [MaSPM], references: [MaSPM])
     MaSPM      String
 
-    CT_DonHang CT_DonHang @relation(fields: [MaSP], references: [MaSP])
+    CT_DonHang CT_DonHang[]
 
     MatHang MatHang[]
 }
@@ -180,15 +261,4 @@ model MatHang {
     MaSPM      String
 
     CT_DonHang CT_DonHang @relation(fields: [MaMH], references: [MaMH])
-
-    MatHangDaBan MatHangDaBan[]
-}
-
-model MatHangDaBan {
-    MaBan String @id @default(uuid())
-    Email String
-    TenKH String
-
-    MaMH    String
-    MatHang MatHang @relation(fields: [MaMH], references: [MaMH])
 }
