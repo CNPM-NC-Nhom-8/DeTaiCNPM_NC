@@ -14,13 +14,11 @@ export function ThemeSwitcher() {
 		setMounted(true);
 	}, []);
 
-	if (!mounted) return null;
+	if (!mounted) return <Button isLoading isIconOnly />;
 
 	return (
 		<Button
 			isIconOnly
-			size="sm"
-			radius="full"
 			onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
 			startContent={theme === "dark" ? <Moon size={20} /> : <Sun size={20} />}
 		/>

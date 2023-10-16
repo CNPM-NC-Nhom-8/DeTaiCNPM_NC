@@ -9,7 +9,7 @@ export default function Page() {
 	const { theme } = useTheme();
 
 	return (
-		<div className="container mx-auto flex max-w-6xl items-center justify-center py-4">
+		<div className="container mx-auto max-w-6xl">
 			<UserProfile appearance={{ baseTheme: theme === "dark" ? dark : undefined }} />
 		</div>
 	);

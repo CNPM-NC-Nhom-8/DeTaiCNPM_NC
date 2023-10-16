@@ -2,7 +2,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 
-import { ClerkProvider } from "@clerk/nextjs";
+import { ClerkProvider, auth } from "@clerk/nextjs";
 import { viVN } from "@clerk/localizations";
 
 import { Toaster } from "react-hot-toast";
@@ -35,7 +35,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 						<BottomFooter />
 					</MainLayout>
 
-					<Toaster toastOptions={{ position: "top-right", style: { borderRadius: "12px", background: "#333", color: "#fff" } }} />
+					<Toaster
+						toastOptions={{
+							position: "top-right",
+							style: { borderRadius: "12px", background: "#333", color: "#fff" },
+						}}
+					/>
 				</body>
 			</html>
 		</ClerkProvider>

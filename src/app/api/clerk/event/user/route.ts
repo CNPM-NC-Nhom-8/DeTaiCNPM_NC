@@ -11,13 +11,13 @@ export async function POST(request: Request) {
 	const payload = (await request.json()) as WebhookEvent;
 	const headers = Object.fromEntries(request.headers);
 
-	const wh = new Webhook(env.CLERK_SIGNING_KEY);
+	// const wh = new Webhook(env.CLERK_SIGNING_KEY);
 
-	try {
-		wh.verify(JSON.stringify(payload), headers);
-	} catch (err) {
-		return NextResponse.json({ error: new Error(err as string).message }, { status: 400 });
-	}
+	// try {
+	// 	wh.verify(JSON.stringify(payload), headers);
+	// } catch (err) {
+	// 	return NextResponse.json({ error: new Error(err as string).message }, { status: 400 });
+	// }
 
 	const { type, data } = payload;
 
@@ -28,9 +28,9 @@ export async function POST(request: Request) {
 
 			await prisma.taiKhoan.create({
 				data: {
+					MaTaiKhoan: data.id,
 					AnhDaiDien: data.image_url,
 					Email: main_email.email_address,
-					MaTaiKhoan: data.id,
 					SDT: main_phoneNum?.phone_number,
 					Ho: data.last_name,
 					Ten: data.first_name,

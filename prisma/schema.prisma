@@ -17,28 +17,25 @@ enum Role {
     QuanTriVien
 }
 
+enum Insurance {
+    None
+    OneToOneVIP6Months
+    ReplacementOr12MonthsRepair
+    OneToOneVIP12Months
+    DropOrWaterDamage
+}
+
 model CartItem {
     MaCartItem String @id @default(uuid())
 
-    Type     String
-    Quantity Int
-
-    MaCart String @unique
-    Cart   Cart   @relation(fields: [MaCart], references: [MaCart])
+    Quantity      Int
+    InsuranceType Insurance @default(None)
 
     MaSPM   String
     SanPham SanPhamMau @relation(fields: [MaSPM], references: [MaSPM])
-}
-
-model Cart {
-    MaCart String @unique
 
     MaKhachHang String
     KhachHang   KhachHang @relation(fields: [MaKhachHang], references: [MaKhachHang])
-
-    CartItem CartItem[]
-
-    @@id([MaCart, MaKhachHang])
 }
 
 model TaiKhoan {
@@ -70,8 +67,9 @@ model KhachHang {
     MaTaiKhoan String   @unique
     TaiKhoan   TaiKhoan @relation(fields: [MaTaiKhoan], references: [MaTaiKhoan])
 
-    DanhGia DanhGia[]
-    Cart    Cart[]
+    DanhGia         DanhGia[]
+    CartItem        CartItem[]
+    SanPhamYeuThich SanPhamYeuThich[]
 }
 
 model LoaiKhachHang {
@@ -81,6 +79,11 @@ model LoaiKhachHang {
     KhachHang       KhachHang[]
     PhamViKhuyenMai PhamViKhuyenMai[] // 1 Loại khách hàng có thể ở trong nhiều phạm vi 
 }
+
+// TODO: Add type for khuyen mai
+// enum LoaiKhuyenMai {
+
+// }
 
 // Khuyen Mai
 model KhuyenMai {
@@ -99,22 +102,32 @@ model PhamViKhuyenMai {
     MaPhamViKhuyenMai String @id @default(uuid())
 
     MaKhuyenMai String  @unique
-    MaSPM       String? @unique
-    MaLKH       String
+    MaSPM       String?
+    MaLKH       String?
 
     KhuyenMai     KhuyenMai       @relation(fields: [MaKhuyenMai], references: [MaKhuyenMai])
     SanPhamMau    SanPhamMau[]
     LoadThanhVien LoaiKhachHang[]
+}
 
-    @@unique([MaKhuyenMai, MaSPM, MaLKH])
+model SanPhamYeuThich {
+    MaSPM      String
+    SanPhamMau SanPhamMau @relation(fields: [MaSPM], references: [MaSPM])
+
+    MaKhachHang String
+    KhachHang   KhachHang @relation(fields: [MaKhachHang], references: [MaKhachHang])
+
+    @@id([MaSPM, MaKhachHang])
 }
 
 // Sản phẩm mẫu
 model SanPhamMau {
-    MaSPM     String @id @default(uuid()) // Tự động tạo 1 mã UUID 
-    TenSP     String @unique
-    MoTa      String
-    TrangThai String
+    MaSPM   String @id @default(uuid()) // Tự động tạo 1 mã UUID 
+    TenSP   String @unique
+    MoTa    String
+    DacDiem String
+    AnhBia  String
+    GiaGoc  Float
 
     HinhAnh        HinhAnh[] // 1 Sản phẩm có thể có nhiều hình ảnh
     DanhGia        DanhGia[] // 1 Sản phẩm có thể có nhiều đánh giá
@@ -130,6 +143,7 @@ model SanPhamMau {
 
     // Khuyen Mai
     PhamViKhuyenMai PhamViKhuyenMai[]
+    SanPhamYeuThich SanPhamYeuThich[]
     FAQ             FAQ[]
 }
 
@@ -169,7 +183,7 @@ model DanhGia {
     NgayDanhGia DateTime @default(now())
 
     MaTraLoi  String?
-    TraLoiCho DanhGia?  @relation("TraLoiCho", fields: [MaTraLoi], references: [MaDanhGia], onDelete: NoAction, onUpdate: NoAction)
+    TraLoiCho DanhGia?  @relation("TraLoiCho", fields: [MaTraLoi], references: [MaDanhGia], onDelete: Cascade, onUpdate: Cascade)
     TraLoiBoi DanhGia[] @relation("TraLoiCho")
 
     SanPhamMau SanPhamMau @relation(fields: [MaSPM], references: [MaSPM])
@@ -185,7 +199,6 @@ model DanhGia {
 model HangSanXuat {
     MaHSX  String @id @default(uuid())
     TenHSX String
-    Logo   String
 
     // 1 nhà sản xuất có thể có nhiều sản phẩm
     SanPhamMau SanPhamMau[]
@@ -213,9 +226,10 @@ model DonHang {
     TongTien     Float // Float vì số tiền có thể lẽ
     NgayDat      DateTime
 
-    CT_DonHang  CT_DonHang?
+    CT_DonHang CT_DonHang?
+
     MaKhuyenMai String
-    KhuyenMai   KhuyenMai   @relation(fields: [MaKhuyenMai], references: [MaKhuyenMai])
+    KhuyenMai   KhuyenMai @relation(fields: [MaKhuyenMai], references: [MaKhuyenMai])
 }
 
 model CT_DonHang {
