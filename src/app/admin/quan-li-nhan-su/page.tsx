@@ -1,6 +1,5 @@
-import { UserTable } from "@/components/admin/nhan-su/userTable";
+import { UserTable } from "@/components/admin/nhan-su/UserTable";
 import { ForbiddenPage } from "@/components/common/Page403";
-import { prisma } from "@/server/db/prisma";
 import { trpc } from "@/utils/trpc/server";
 
 import { Metadata } from "next";
@@ -18,7 +17,7 @@ export default async function Page() {
 
 	const [userData, LoaiKhachHang] = await Promise.all([
 		trpc.admin.layTongThongTinNguoiDung.query({ page: 1, perPage: 6 }),
-		prisma.loaiKhachHang.findMany(),
+		trpc.admin.layLoaiKH.query(),
 	]);
 
 	return (

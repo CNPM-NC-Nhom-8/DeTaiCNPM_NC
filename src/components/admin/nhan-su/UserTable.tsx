@@ -30,10 +30,10 @@ import {
 	TableRow,
 	User,
 } from "@nextui-org/react";
-import { LoaiKhachHang, Role } from "@prisma/client";
+import type { Role } from "@prisma/client";
 
-import { ChevronDownIcon, RefreshCw, SearchIcon } from "lucide-react";
-import { ChangeEvent, useCallback, useMemo, useState } from "react";
+import { ChevronDownIcon, RotateCcw, SearchIcon } from "lucide-react";
+import { type ChangeEvent, useCallback, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
 export type userType = RouterOutput["admin"]["layTongThongTinNguoiDung"]["data"][number];
@@ -63,8 +63,17 @@ const INITIAL_VISIBLE_COLUMNS: (typeof allColumns)[number]["uid"][] = [
 	"Actions",
 ];
 
-const searchType: Array<NonNullable<RouterInput["admin"]["layTongThongTinNguoiDung"]["search"]>["query"]["queryType"]> =
-	["Search-ID", "Search-Name", "Search-Email", "Search-SDT"];
+const searchType: Array<{
+	key: NonNullable<RouterInput["admin"]["layTongThongTinNguoiDung"]["search"]>["query"]["queryType"];
+	value: string;
+}> = [
+	{ key: "Search-ID", value: "Mã ID" },
+	{ key: "Search-Name", value: "Tên tài khoản" },
+	{ key: "Search-Email", value: "Email" },
+	{ key: "Search-SDT", value: "Số điên thoại" },
+];
+
+const perPage = [6, 12, 18] as const;
 
 export const UserTable = ({
 	currentUserId,
@@ -73,13 +82,13 @@ export const UserTable = ({
 }: {
 	currentUserId: string;
 	initialUsers: RouterOutput["admin"]["layTongThongTinNguoiDung"];
-	initialLoaiKH: LoaiKhachHang[];
+	initialLoaiKH: RouterOutput["admin"]["layLoaiKH"];
 }) => {
 	const [page, setPage] = useState(1);
-	const [rowsPerPage, setRowsPerPage] = useState<6 | 12 | 18>(6);
+	const [rowsPerPage, setRowsPerPage] = useState<(typeof perPage)[number]>(6);
 
 	const [filterValue, setFilterValue] = useState<{
-		searchType: (typeof searchType)[number];
+		searchType: (typeof searchType)[number]["key"];
 		searchValue: string;
 		filterRole: Role[];
 		filterType: string[];
@@ -161,7 +170,7 @@ export const UserTable = ({
 	}, [sortDescriptor, users.data]);
 
 	const onRowsPerPageChange = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
-		setRowsPerPage(Number(e.target.value) as typeof rowsPerPage);
+		setRowsPerPage(Number(e.target.value.slice("per-page-".length)) as typeof rowsPerPage);
 		setPage(1);
 	}, []);
 
@@ -189,7 +198,7 @@ export const UserTable = ({
 							value={filterValue.searchType}
 							labelPlacement="outside"
 							classNames={{ base: "w-1/4" }}
-							items={searchType.map((type) => ({ key: type, value: type.slice("Search-".length) }))}
+							items={searchType}
 							onChange={(e) => {
 								setFilterValue((prev) => ({
 									...prev,
@@ -238,17 +247,23 @@ export const UserTable = ({
 
 				<div className="flex items-center justify-between">
 					<span className="text-small text-default-400">Tổng {users.count} người dùng</span>
-					<label className="flex items-center gap-2 text-small text-default-400">
-						Cột từng trang:
-						<select
+
+					<div>
+						<Select
+							size="sm"
+							labelPlacement="outside-left"
 							onChange={onRowsPerPageChange}
-							className="bg-transparent text-small text-default-400 outline-none"
+							defaultSelectedKeys={["per-page-" + rowsPerPage]}
+							label="Cột từng trang"
+							items={perPage.map((num) => ({ key: "per-page-" + num, value: String(num) }))}
+							classNames={{
+								label: "flex items-center h-8 whitespace-nowrap text-sm",
+								base: "w-[180px]",
+							}}
 						>
-							<option value="5">5</option>
-							<option value="10">10</option>
-							<option value="15">15</option>
-						</select>
-					</label>
+							{(item) => <SelectItem key={item.key}>{item.value}</SelectItem>}
+						</Select>
+					</div>
 				</div>
 
 				<div className="flex gap-2">
@@ -311,8 +326,14 @@ export const UserTable = ({
 						size="lg"
 						isIconOnly
 						startContent={
-							<RefreshCw
-								className={cn(`transition-transform`, { "animate-spinner-linear-spin": isRefetching })}
+							<RotateCcw
+								size={20}
+								className={cn(
+									`rotate-0 transition-transform duration-1000 ease-linear will-change-transform`,
+									{
+										"-rotate-[360deg]": isRefetching,
+									},
+								)}
 							/>
 						}
 						onClick={async () => {
@@ -421,7 +442,7 @@ export const UserTable = ({
 							size="sm"
 							variant="flat"
 						>
-							{user.Banned ? "Bị cấm" : "Bình thường"}
+							{user.Banned ? "Cấm hoạt động" : "Hoạt động"}
 						</Chip>
 					);
 
@@ -483,3 +504,4 @@ export const UserTable = ({
 		</Table>
 	);
 };
+
