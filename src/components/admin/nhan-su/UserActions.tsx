@@ -3,7 +3,7 @@
 import { cn } from "@/utils/common";
 import { trpc } from "@/utils/trpc/react";
 
-import type { userType } from "./userTable";
+import type { userType } from "./UserTable";
 
 import {
 	Button,
@@ -56,40 +56,44 @@ export const UserActions = ({
 				</DropdownTrigger>
 				<DropdownMenu
 					itemClasses={{ description: "max-w-[200px]" }}
-					disabledKeys={
-						user.MaTaiKhoan === currentUserId
-							? ["Delete", "Ban"]
-							: user.Banned
-							? ["Edit", "Delete"]
-							: undefined
-					}
+					disabledKeys={(() => {
+						if (user.MaKhachHang === currentUserId) return ["Delete", "Ban"];
+						if (user.Role === "QuanTriVien" || user.Role === "NhanVien") return ["Delete", "Ban"];
+						if (user.Banned) return ["Edit", "Delete"];
+
+						return [];
+					})()}
 					onAction={(e) => {
 						setActionType(e as typeof actionType);
 						onOpen();
 					}}
 				>
-					<DropdownItem key="Edit" description="Cập nhật thông tin về người dùng" startContent={<Pencil />}>
-						Cập nhật
-					</DropdownItem>
-					{user.Banned ? (
+					<DropdownSection showDivider title="Hành động">
 						<DropdownItem
-							showDivider
-							key={"Unban"}
-							description="Xóa cấm người dùng, cho phép người dùng đăng nhập!"
-							startContent={<CheckCircle2 />}
+							key="Edit"
+							description="Cập nhật thông tin về người dùng"
+							startContent={<Pencil />}
 						>
-							Xóa cấm
+							Cập nhật
 						</DropdownItem>
-					) : (
-						<DropdownItem
-							showDivider
-							key={"Ban"}
-							description="Cấm người dùng đăng nhập, đăng xuất mọi thiết bị của người dùng!"
-							startContent={<Ban />}
-						>
-							Cấm
-						</DropdownItem>
-					)}
+						{user.Banned ? (
+							<DropdownItem
+								key={"Unban"}
+								description="Xóa cấm người dùng, cho phép người dùng đăng nhập!"
+								startContent={<CheckCircle2 />}
+							>
+								Xóa cấm
+							</DropdownItem>
+						) : (
+							<DropdownItem
+								key={"Ban"}
+								description="Cấm người dùng đăng nhập, đăng xuất mọi thiết bị của người dùng!"
+								startContent={<Ban />}
+							>
+								Cấm
+							</DropdownItem>
+						)}
+					</DropdownSection>
 					<DropdownSection title="Vùng nguy hiểm">
 						<DropdownItem
 							key="Delete"
