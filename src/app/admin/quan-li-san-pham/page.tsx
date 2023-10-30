@@ -13,11 +13,11 @@ export const generateMetadata = async (): Promise<Metadata> => {
 };
 
 export default async function ProductManagePage() {
-	const user = await trpc.admin.layNguoiDungHienTai.query({ allowedRoles: ["QuanTriVien"] });
+	const user = await trpc.admin.layNguoiDungHienTai.query({ allowedRoles: ["QuanTriVien", "NhanVien"] });
 	if (!user) return <ForbiddenPage />;
 
 	const [productData, HangSX] = await Promise.all([
-		trpc.admin.layThongTinSanPham.query({ page: 1, perPage: 5 }),
+		trpc.admin.layThongTinSanPham.query({ page: 1, perPage: 6 }),
 		prisma.hangSanXuat.findMany(),
 	]);
 
