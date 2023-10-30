@@ -1,10 +1,11 @@
 "use client";
 
-import { trpc } from "@/utils/trpc/client";
-import { Tab, Tabs } from "@nextui-org/react";
+import { trpc } from "@/utils/trpc/react";
 
 import { PhoneCard } from "../common/PhoneCard";
 import { PhoneCardSkeleton } from "../common/PhoneCardSkeletons";
+
+import { Tab, Tabs } from "@nextui-org/react";
 
 export const RelatePhone = ({ maHSX }: { maHSX: string }) => {
 	const { data, isLoading } = trpc.sanPham.getSanPhamTuongTu.useQuery(
@@ -27,7 +28,8 @@ export const RelatePhone = ({ maHSX }: { maHSX: string }) => {
 							</>
 						)}
 
-						{!isLoading && data?.SanPhamMau.map((sanPham) => <PhoneCard key={sanPham.MaSPM} sanPhamMau={sanPham} />)}
+						{!isLoading &&
+							data?.SanPhamMau.map((sanPham) => <PhoneCard key={sanPham.MaSPM} sanPhamMau={sanPham} />)}
 					</section>
 				</Tab>
 

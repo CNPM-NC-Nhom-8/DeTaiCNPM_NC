@@ -1,23 +1,23 @@
-import { NextResponse } from "next/server";
-
 import { env } from "@/env.mjs";
-
 import { prisma } from "@/server/db/prisma";
 
+import { NextResponse } from "next/server";
+
 import type { WebhookEvent } from "@clerk/clerk-sdk-node";
+
 import { Webhook } from "svix";
 
 export async function POST(request: Request) {
 	const payload = (await request.json()) as WebhookEvent;
 	const headers = Object.fromEntries(request.headers);
 
-	// const wh = new Webhook(env.CLERK_SIGNING_KEY);
+	const wh = new Webhook(env.CLERK_SIGNING_KEY);
 
-	// try {
-	// 	wh.verify(JSON.stringify(payload), headers);
-	// } catch (err) {
-	// 	return NextResponse.json({ error: new Error(err as string).message }, { status: 400 });
-	// }
+	try {
+		wh.verify(JSON.stringify(payload), headers);
+	} catch (err) {
+		return NextResponse.json({ error: new Error(err as string).message }, { status: 400 });
+	}
 
 	const { type, data } = payload;
 

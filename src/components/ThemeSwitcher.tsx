@@ -1,9 +1,10 @@
 "use client";
 
-import { Button, Switch } from "@nextui-org/react";
-import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 
+import { Button } from "@nextui-org/react";
+
+import { Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export function ThemeSwitcher() {

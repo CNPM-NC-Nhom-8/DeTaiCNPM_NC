@@ -1,7 +1,9 @@
 "use client";
 
 import { RouterOutput } from "@/server/trpc/trpc";
+
 import { Button, Image } from "@nextui-org/react";
+
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 
@@ -25,11 +27,18 @@ export const PhoneImageShowcase = ({ images }: PropsParams) => {
 					}}
 				/>
 
-				<div className="flex w-full transition-all" style={{ translate: -Math.abs(images.indexOf(currentImage)) + "00%" }}>
+				<div
+					className="flex w-full transition-all"
+					style={{ translate: -Math.abs(images.indexOf(currentImage)) + "00%" }}
+				>
 					{images.map((item) => (
-						<div key={item.MaHA} className="flex min-w-full flex-shrink-0 flex-grow [&>div]:w-full [&>div]:!max-w-full">
+						<div
+							key={item.MaHA}
+							className="flex min-w-full flex-shrink-0 flex-grow [&>div]:w-full [&>div]:!max-w-full"
+						>
 							<Image
 								src={item.Url}
+								alt=""
 								className="aspect-video w-full flex-shrink-0 flex-grow rounded-b-none rounded-t-lg object-scale-down object-center"
 							/>
 						</div>
@@ -57,7 +66,7 @@ export const PhoneImageShowcase = ({ images }: PropsParams) => {
 						className="h-full min-w-max flex-col p-0 outline-none"
 						onClick={() => setImage(item)}
 					>
-						<Image radius="none" src={item.Url} className="aspect-square w-12 object-cover" />
+						<Image radius="none" src={item.Url} alt="" className="aspect-square w-12 object-cover" />
 					</Button>
 				))}
 			</div>

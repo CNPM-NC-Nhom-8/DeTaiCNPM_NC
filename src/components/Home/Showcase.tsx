@@ -1,15 +1,13 @@
 "use client";
 
+import { cn } from "@/utils/common";
+
 import { Button, Image, Spacer } from "@nextui-org/react";
+
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 
 const images: { src: string; key: string; name: string }[] = [
-	{
-		key: "IPHONE 15",
-		name: "Sẵn hàng mua ngay",
-		src: "https://cdn2.cellphones.com.vn/insecure/rs:fill:690:300/q:80/plain/https://dashboard.cellphones.com.vn/storage/sliding-ip15-normal.png",
-	},
 	{
 		key: "Z FLIP5|FOLD5",
 		name: "Mở bán giá sốc",
@@ -56,7 +54,7 @@ export const Showcase = () => {
 	const [currentTab, setTab] = useState<(typeof images)[number]>(images[0]);
 
 	return (
-		<section className="flex rounded-lg">
+		<section className="flex h-max rounded-lg">
 			<div className="flex flex-col overflow-hidden rounded-lg">
 				<div className="group relative w-full">
 					<Button
@@ -71,10 +69,20 @@ export const Showcase = () => {
 						}}
 					/>
 
-					<div className="flex w-full transition-all" style={{ translate: -Math.abs(images.indexOf(currentTab)) + "00%" }}>
+					<div
+						className="flex w-full transition-all"
+						style={{ translate: -Math.abs(images.indexOf(currentTab)) + "00%" }}
+					>
 						{images.map((item) => (
-							<div key={item.key} className="flex min-w-full flex-shrink-0 flex-grow [&>div]:w-full [&>div]:!max-w-full">
-								<Image src={item.src} className="w-full flex-shrink-0 flex-grow rounded-b-none rounded-t-lg" />
+							<div
+								key={item.key}
+								className="flex min-w-full flex-shrink-0 flex-grow [&>div]:w-full [&>div]:!max-w-full"
+							>
+								<Image
+									src={item.src}
+									alt=""
+									className="w-full flex-shrink-0 flex-grow rounded-b-none rounded-t-lg"
+								/>
 							</div>
 						))}
 					</div>
@@ -98,13 +106,13 @@ export const Showcase = () => {
 							data-key={item.key.replaceAll(" ", "-")}
 							key={item.key}
 							radius="none"
-							className={`h-full min-w-max flex-col py-2 outline-none ${
-								currentTab.key === item.key && "border-b-2 border-black dark:border-white"
-							}`}
+							className={cn("h-full min-w-max flex-col py-2 outline-none", {
+								"border-b-2 border-black dark:border-white": currentTab.key === item.key,
+							})}
 							onClick={() => setTab(item)}
 						>
 							{item.key}
-							<span className={`${currentTab.key === item.key && "font-semibold"}`}>{item.name}</span>
+							<span className={cn({ "font-semibold": currentTab.key === item.key })}>{item.name}</span>
 						</Button>
 					))}
 				</div>
@@ -114,7 +122,7 @@ export const Showcase = () => {
 
 			<aside className="flex w-1/4 flex-shrink-0 flex-col justify-between ">
 				{vouncher.map((item) => {
-					return <Image src={item.src} key={item.key} />;
+					return <Image src={item.src} key={item.key} alt="" />;
 				})}
 			</aside>
 		</section>

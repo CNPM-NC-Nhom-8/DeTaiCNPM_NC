@@ -46,9 +46,9 @@ export const BottomFooter = () => {
 			<Divider orientation="horizontal" />
 
 			<p className="w-full pt-4 text-center text-sm">
-				Mọi thông tin và hình ảnh trên website đều được sưu tầm trên Internet. Chúng tôi không sở hữu hay chịu trách nhiệm bất kỳ
-				thông tin nào trên web này. Nếu làm ảnh hưởng đến cá nhân hay tổ chức nào, khi được yêu cầu, chúng tôi sẽ xem xét và gỡ bỏ
-				ngay lập tức.{" "}
+				Mọi thông tin và hình ảnh trên website đều được sưu tầm trên Internet. Chúng tôi không sở hữu hay chịu
+				trách nhiệm bất kỳ thông tin nào trên web này. Nếu làm ảnh hưởng đến cá nhân hay tổ chức nào, khi được
+				yêu cầu, chúng tôi sẽ xem xét và gỡ bỏ ngay lập tức.{" "}
 				<Link underline="hover" href="mailto:phungtanphat23@gmail.com" className="text-sm">
 					phungtanphat23@gmail.com
 				</Link>

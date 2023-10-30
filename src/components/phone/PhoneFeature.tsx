@@ -3,6 +3,7 @@
 import NextLink from "next/link";
 
 import { Card, Image, Link } from "@nextui-org/react";
+
 import ReactMarkdown from "react-markdown";
 
 export const PhoneFeatures = ({ children }: { children: string }) => {
@@ -27,7 +28,9 @@ export const PhoneFeatures = ({ children }: { children: string }) => {
 							{children}
 						</Link>
 					),
-					blockquote: ({ children }) => <blockquote className="border-l-2 border-white pl-4">{children}</blockquote>,
+					blockquote: ({ children }) => (
+						<blockquote className="border-l-2 border-white pl-4">{children}</blockquote>
+					),
 					img: ({ node: _node, alt, src, ..._prop }) => (
 						<span className="flex flex-col gap-y-2">
 							{/* eslint-disable-next-line @next/next/no-img-element */}

@@ -1,9 +1,16 @@
 "use client";
 
+import { trpc } from "@/utils/trpc/react";
+
+import { ThemeSwitcher } from "../ThemeSwitcher";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
+import { SignOutButton, useUser } from "@clerk/nextjs";
 import {
 	Avatar,
 	Button,
-	Divider,
 	Dropdown,
 	DropdownItem,
 	DropdownMenu,
@@ -14,30 +21,20 @@ import {
 	NavbarBrand,
 	NavbarContent,
 	NavbarItem,
-	Spacer,
 } from "@nextui-org/react";
 
-import { countAtom } from "@/server/jotai/cart";
-import { trpc } from "@/utils/trpc/client";
-import { ThemeSwitcher } from "../ThemeSwitcher";
-
-import { SignOutButton, useUser } from "@clerk/nextjs";
-import { useAtom } from "jotai";
-import { LogIn, LogOut, Search, ShieldBan, ShoppingCart, UserCog } from "lucide-react";
-
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { LogIn, LogOut, PackageSearch, Search, ShieldBan, ShoppingCart, UserCog, Users } from "lucide-react";
 
 export const MainNavbar = () => {
 	const { isLoaded, isSignedIn, user } = useUser();
-	const [cardCount] = useAtom(countAtom);
+	const pathname = usePathname();
+
+	const cart = trpc.cart.layGioHang.useQuery(undefined, { refetchOnReconnect: false, refetchOnWindowFocus: false });
 
 	const { data, isSuccess } = trpc.taiKhoan.getTaiKhoan.useQuery(undefined, {
 		refetchOnReconnect: false,
 		refetchOnWindowFocus: false,
 	});
-
-	const pathname = usePathname();
 
 	return (
 		<Navbar isBordered shouldHideOnScroll classNames={{ wrapper: "max-w-6xl" }}>
@@ -65,9 +62,14 @@ export const MainNavbar = () => {
 				</NavbarItem>
 
 				<NavbarItem>
-					<Button aria-label="Cart" as={Link} href="/cart">
-						<ShoppingCart size={20} />
-						<span> {cardCount} </span>
+					<Button
+						aria-label="Cart"
+						as={Link}
+						href="/cart"
+						isLoading={cart.isLoading}
+						startContent={<ShoppingCart size={20} />}
+					>
+						{!cart.isLoading && ((cart.isSuccess && cart.data.length) || 0)}
 					</Button>
 				</NavbarItem>
 
@@ -85,19 +87,36 @@ export const MainNavbar = () => {
 						</DropdownTrigger>
 
 						{isLoaded && isSignedIn ? (
-							<DropdownMenu aria-label="Profile Actions" variant="flat">
-								<DropdownSection showDivider>
-									<DropdownItem key="profile" className="h-14 gap-2">
-										<p className="font-semibold">Đăng nhập với</p>
-										<p className="font-semibold">{user.emailAddresses[0].emailAddress}</p>
-									</DropdownItem>
-								</DropdownSection>
+							<DropdownMenu aria-label="Profile Actions" variant="flat" closeOnSelect={false}>
+								<DropdownItem showDivider key="profile" className="h-14 gap-2">
+									<p className="font-semibold">Đăng nhập với</p>
+									<p className="font-semibold">{user.emailAddresses[0].emailAddress}</p>
+								</DropdownItem>
 
 								{isSuccess && data && (data.Role === "QuanTriVien" || data.Role === "NhanVien") ? (
-									<DropdownSection title="Quản trị viên">
+									<DropdownSection title="Quản Lý">
 										<DropdownItem key="admin" startContent={<ShieldBan size={16} />}>
-											<Link href="/admin">Trang Admin</Link>
+											<Link className="block w-full" href="/admin">
+												Trang Admin
+											</Link>
 										</DropdownItem>
+
+										<DropdownItem key="productManage" startContent={<PackageSearch size={16} />}>
+											<Link className="block w-full" href="/admin/quan-li-san-pham">
+												Quản lý sản phầm
+											</Link>
+										</DropdownItem>
+
+										{data.Role === "QuanTriVien" ? (
+											<DropdownItem key="staffManage" startContent={<Users size={16} />}>
+												<Link className="block w-full" href="/admin/quan-li-nhan-su">
+													Quản lý nhân sự
+												</Link>
+											</DropdownItem>
+										) : (
+											// Dumb typescript issue
+											(undefined as any)
+										)}
 									</DropdownSection>
 								) : (
 									// Dumb typescript issue
@@ -106,11 +125,15 @@ export const MainNavbar = () => {
 
 								<DropdownSection title="Cài đặt">
 									<DropdownItem key="account" startContent={<UserCog size={16} />}>
-										<Link href="/auth/account">Cài đặt tài khoản</Link>
+										<Link className="block w-full" href="/auth/account">
+											Cài đặt tài khoản
+										</Link>
 									</DropdownItem>
 
 									<DropdownItem key="user" startContent={<UserCog size={16} />}>
-										<Link href="/auth/account/user">Cài đặt người dùng</Link>
+										<Link className="block w-full" href="/auth/account/user">
+											Cài đặt người dùng
+										</Link>
 									</DropdownItem>
 								</DropdownSection>
 

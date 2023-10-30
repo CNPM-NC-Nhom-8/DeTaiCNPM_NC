@@ -6,7 +6,11 @@ import { ObjectKeys } from "@/utils/common";
 
 import { Card, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@nextui-org/react";
 
-export const PhoneDetailInfo = ({ data }: { data: NonNullable<RouterOutput["sanPham"]["getSanPham"]["ThongSoKyThuat"]> }) => {
+export const PhoneDetailInfo = ({
+	data,
+}: {
+	data: NonNullable<RouterOutput["sanPham"]["getSanPham"]["ThongSoKyThuat"]>;
+}) => {
 	return (
 		<div>
 			<Card className="flex max-h-max flex-grow flex-col gap-2 p-3">

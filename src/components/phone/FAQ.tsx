@@ -1,6 +1,7 @@
 "use client";
 
 import { RouterOutput } from "@/server/trpc/trpc";
+
 import { Accordion, AccordionItem, Card, CardHeader } from "@nextui-org/react";
 
 export const FAQ = ({ data }: { data: RouterOutput["sanPham"]["getSanPham"]["FAQ"] }) => {

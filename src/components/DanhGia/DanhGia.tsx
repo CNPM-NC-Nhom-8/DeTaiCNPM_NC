@@ -1,16 +1,16 @@
 "use client";
 
 import type { RouterOutput } from "@/server/trpc/trpc";
-import type { User } from "@clerk/clerk-sdk-node";
-
 import { dayjs } from "@/utils/dayjs";
-import { trpc } from "@/utils/trpc/client";
+import { trpc } from "@/utils/trpc/react";
 
-import { Avatar, Button, Card, CardBody, Spacer, Spinner } from "@nextui-org/react";
-import { Flag, MessagesSquare, Reply, X } from "lucide-react";
-
-import { Fragment, useState } from "react";
 import { DanhGiaTextArea } from "./DanhGiaTextArea";
+
+import type { User } from "@clerk/clerk-sdk-node";
+import { Avatar, Button, Card, CardBody, Spacer, Spinner } from "@nextui-org/react";
+
+import { Flag, MessagesSquare, Reply, X } from "lucide-react";
+import { Fragment, useState } from "react";
 import toast from "react-hot-toast";
 
 type ParamsType = {

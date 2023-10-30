@@ -1,12 +1,25 @@
-import { httpBatchLink } from "@trpc/client";
+import { type AppRouter } from "@/server/trpc/routers";
 
-import { appRouter } from "@/server/trpc/routers";
-import { getBaseUrl } from "@/utils/getBaseUrl";
+import { getUrl, transformer } from "./shared";
 
-import { prisma } from "@/server/db/prisma";
+import { headers } from "next/headers";
 
-export const serverClient = appRouter.createCaller({
-	// @ts-expect-error No idea
-	links: [httpBatchLink({ url: getBaseUrl() + "/api/trpc" })],
-	prisma,
+import { createTRPCProxyClient, loggerLink, unstable_httpBatchStreamLink } from "@trpc/client";
+
+export const trpc = createTRPCProxyClient<AppRouter>({
+	transformer,
+	links: [
+		loggerLink({
+			enabled: (op) =>
+				process.env.NODE_ENV === "development" || (op.direction === "down" && op.result instanceof Error),
+		}),
+		unstable_httpBatchStreamLink({
+			url: getUrl(),
+			headers() {
+				const heads = new Map(headers());
+				heads.set("x-trpc-source", "rsc");
+				return Object.fromEntries(heads);
+			},
+		}),
+	],
 });

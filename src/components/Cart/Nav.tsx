@@ -1,10 +1,10 @@
 "use client";
 
-import { Button } from "@nextui-org/react";
-import { ChevronLeft } from "lucide-react";
-import Link from "next/link";
-
 import { useRouter } from "next/navigation";
+
+import { Button } from "@nextui-org/react";
+
+import { ChevronLeft } from "lucide-react";
 
 export const CartNav = ({ cartLength }: { cartLength: number }) => {
 	const router = useRouter();

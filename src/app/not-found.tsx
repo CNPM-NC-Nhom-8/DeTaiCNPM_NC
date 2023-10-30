@@ -1,10 +1,11 @@
 "use client";
 
-import { Button, ButtonGroup, Link } from "@nextui-org/react";
-import { AlertTriangle } from "lucide-react";
-
 import type { Metadata } from "next";
 import NextLink from "next/link";
+
+import { Button, ButtonGroup, Link } from "@nextui-org/react";
+
+import { AlertTriangle } from "lucide-react";
 
 export const metadata: Metadata = {
 	title: "Lỗi 404 - Trang không tồn tại",

@@ -1,11 +1,37 @@
 "use client";
 
 import { RouterOutput } from "@/server/trpc/trpc";
+import { trpc } from "@/utils/trpc/react";
 
-import { Badge, Button, ButtonGroup, Card, CardHeader, Radio, RadioGroup } from "@nextui-org/react";
+import { Badge, Button, ButtonGroup, Card, CardHeader, Radio, RadioGroup, Spinner } from "@nextui-org/react";
+import { Insurance } from "@prisma/client";
+
 import { CheckIcon, DollarSign, ShieldCheck, ShoppingCart } from "lucide-react";
-
 import { useEffect, useState } from "react";
+
+const InsuranceTypeOptions: { price: number; type: Insurance; description: string }[] = [
+	{
+		price: 1_100_000,
+		type: "OneToOneVIP6Months",
+		description: "1 đổi 1 VIP 6 tháng: Đổi máy mới tương đương khi có lỗi từ NSX trong 6 tháng",
+	},
+	{
+		price: 1_600_000,
+		type: "ReplacementOr12MonthsRepair",
+		description:
+			"S24 + 12 tháng: Đổi sản phẩm tương đương hoặc miễn phí chi phí sửa chữa nếu có lỗi của NSX khi hết hạn bảo hành trong 12 tháng",
+	},
+	{
+		price: 1_800_000,
+		type: "OneToOneVIP12Months",
+		description: "1 đổi 1 VIP 12 tháng: Đổi máy mới tương đương khi có lỗi từ NSX trong 12 tháng",
+	},
+	{
+		price: 2_400_000,
+		type: "DropOrWaterDamage",
+		description: "Rơi vỡ - Rớt nước: Hỗ trợ 90% chi phí sửa chữa, đổi mới sản phẩm nếu hư hỏng nặng trong 12 tháng",
+	},
+];
 
 export const OrderActionSideBar = ({ data }: { data: RouterOutput["sanPham"]["getSanPham"] }) => {
 	const moneyFormat = new Intl.NumberFormat("de-DE", { style: "currency", currency: "vnd" });
@@ -16,7 +42,14 @@ export const OrderActionSideBar = ({ data }: { data: RouterOutput["sanPham"]["ge
 	const MauSac = Array.from(new Set(data.SanPhamBienThe.sort().map((SP) => SP.Mau)));
 	const [selectedMauSac, setMauSac] = useState(MauSac[0]);
 
-	const [selected, setSelected] = useState<string>("");
+	const [selectedInsurance, setInsurance] = useState<Insurance>("None");
+
+	const trpcContext = trpc.useContext();
+	const themVaoGioHang = trpc.cart.themVaoGiohang.useMutation({
+		onSuccess: async () => {
+			await trpcContext.cart.layGioHang.refetch();
+		},
+	});
 
 	useEffect(() => {
 		const SP = data.SanPhamBienThe.filter(
@@ -117,12 +150,19 @@ export const OrderActionSideBar = ({ data }: { data: RouterOutput["sanPham"]["ge
 					<Button color="success" size="lg" startContent={<DollarSign size={20} />} className="w-2/3 text-lg">
 						Mua ngay
 					</Button>
+
 					<Button
-						color="success"
 						size="lg"
-						endContent={<ShoppingCart size={20} />}
+						color="success"
 						variant="bordered"
-						className="w-1/3 px-2"
+						spinnerPlacement="end"
+						className="w-max px-2"
+						isLoading={themVaoGioHang.isLoading}
+						spinner={<Spinner color="success" size="sm" />}
+						endContent={!themVaoGioHang.isLoading && <ShoppingCart size={20} />}
+						onClick={() => {
+							themVaoGioHang.mutate({ maSP: data.MaSPM, quanlity: 1, type: selectedInsurance });
+						}}
 					>
 						Thêm vào
 					</Button>
@@ -133,90 +173,36 @@ export const OrderActionSideBar = ({ data }: { data: RouterOutput["sanPham"]["ge
 				<CardHeader className="gap-2">
 					<ShieldCheck className="flex-shrink-0" /> Bảo vệ sản phẩm toàn diện với dịch vụ bảo hành mở rộng
 				</CardHeader>
+
 				<div className="px-3 pb-3">
-					<RadioGroup classNames={{ wrapper: "gap-4" }} value={selected} onValueChange={setSelected}>
-						<Radio
-							color="success"
-							className="group rounded-lg border-2 border-transparent p-2 data-[selected=true]:border-success"
-							value="option-1"
-						>
-							<div className="flex flex-col justify-center gap-2 text-sm">
-								<span className="block">
-									1 đổi 1 VIP 6 tháng: Đổi máy mới tương đương khi có lỗi từ NSX trong 6 tháng
-								</span>
-								<div className="flex items-center justify-between">
-									<span className="text-red-600 group-data-[selected=true]:text-success">
-										1.100.000 đ
-									</span>
+					<RadioGroup
+						classNames={{ wrapper: "gap-4" }}
+						value={selectedInsurance}
+						onValueChange={(value) => setInsurance(value as Insurance)}
+					>
+						{InsuranceTypeOptions.map((InsuranceData, index) => {
+							return (
+								<Radio
+									key={[InsuranceData.type, index].join("-")}
+									color="success"
+									className="group rounded-lg border-2 border-transparent p-2 data-[selected=true]:border-success"
+									value={InsuranceData.type}
+								>
+									<div className="flex flex-col justify-center gap-2 text-sm">
+										<span className="block">{InsuranceData.description}</span>
+										<div className="flex items-center justify-between">
+											<span className="text-red-600 group-data-[selected=true]:text-success">
+												{moneyFormat.format(InsuranceData.price)}
+											</span>
 
-									<Button size="sm" color="danger" variant="light">
-										Xem Thêm Chi Tiết
-									</Button>
-								</div>
-							</div>
-						</Radio>
-						<Radio
-							color="success"
-							className="group rounded-lg border-2 border-transparent p-2 data-[selected=true]:border-success"
-							value="option-2"
-						>
-							<div className="flex flex-col justify-center gap-2 text-sm">
-								<span className="block">
-									S24 + 12 tháng: Đổi sản phẩm tương đương hoặc miễn phí chi phí sửa chữa nếu có lỗi
-									của NSX khi hết hạn bảo hành trong 12 tháng
-								</span>
-								<div className="flex items-center justify-between">
-									<span className="text-red-600 group-data-[selected=true]:text-success">
-										1.100.000 đ
-									</span>
-
-									<Button size="sm" color="danger" variant="light">
-										Xem Thêm Chi Tiết
-									</Button>
-								</div>
-							</div>
-						</Radio>
-						<Radio
-							color="success"
-							className="group rounded-lg border-2 border-transparent p-2 data-[selected=true]:border-success"
-							value="option-3"
-						>
-							<div className="flex flex-col justify-center gap-2 text-sm">
-								<span className="block">
-									1 đổi 1 VIP 12 tháng: Đổi máy mới tương đương khi có lỗi từ NSX trong 12 tháng
-								</span>
-								<div className="flex items-center justify-between">
-									<span className="text-red-600 group-data-[selected=true]:text-success">
-										1.100.000 đ
-									</span>
-
-									<Button size="sm" color="danger" variant="light">
-										Xem Thêm Chi Tiết
-									</Button>
-								</div>
-							</div>
-						</Radio>
-						<Radio
-							color="success"
-							className="group rounded-lg border-2 border-transparent p-2 data-[selected=true]:border-success"
-							value="option-4"
-						>
-							<div className="flex flex-col justify-center gap-2 text-sm">
-								<span className="block">
-									Rơi vỡ - Rớt nước: Hỗ trợ 90% chi phí sửa chữa, đổi mới sản phẩm nếu hư hỏng nặng
-									trong 12 tháng
-								</span>
-								<div className="flex items-center justify-between">
-									<span className="text-red-600 group-data-[selected=true]:text-success">
-										1.100.000 đ
-									</span>
-
-									<Button size="sm" color="danger" variant="light">
-										Xem Thêm Chi Tiết
-									</Button>
-								</div>
-							</div>
-						</Radio>
+											<Button size="sm" color="danger" variant="light">
+												Xem Thêm Chi Tiết
+											</Button>
+										</div>
+									</div>
+								</Radio>
+							);
+						})}
 					</RadioGroup>
 				</div>
 			</Card>

@@ -31,11 +31,11 @@ model CartItem {
     Quantity      Int
     InsuranceType Insurance @default(None)
 
-    MaSPM   String
-    SanPham SanPhamMau @relation(fields: [MaSPM], references: [MaSPM])
+    MaSP    String
+    SanPham SanPhamBienThe @relation(fields: [MaSP], references: [MaSP], onDelete: Cascade, onUpdate: Cascade)
 
     MaKhachHang String
-    KhachHang   KhachHang @relation(fields: [MaKhachHang], references: [MaKhachHang])
+    KhachHang   KhachHang @relation(fields: [MaKhachHang], references: [MaKhachHang], onDelete: Cascade, onUpdate: Cascade)
 }
 
 model TaiKhoan {
@@ -46,6 +46,7 @@ model TaiKhoan {
     TenTaiKhoan String?
     Email       String  @unique
     SDT         String? @unique
+    Banned      Boolean @default(false)
 
     NgayTaoTK  DateTime @default(now())
     AnhDaiDien String
@@ -62,10 +63,10 @@ model KhachHang {
 
     // Tạo liên kết với bảng LoaiThanhVien
     MaLKH         String
-    LoaiKhachHang LoaiKhachHang @relation(fields: [MaLKH], references: [MaLKH])
+    LoaiKhachHang LoaiKhachHang @relation(fields: [MaLKH], references: [MaLKH], onUpdate: Restrict, onDelete: Restrict)
 
     MaTaiKhoan String   @unique
-    TaiKhoan   TaiKhoan @relation(fields: [MaTaiKhoan], references: [MaTaiKhoan])
+    TaiKhoan   TaiKhoan @relation(fields: [MaTaiKhoan], references: [MaTaiKhoan], onUpdate: Cascade, onDelete: Cascade)
 
     DanhGia         DanhGia[]
     CartItem        CartItem[]
@@ -81,9 +82,10 @@ model LoaiKhachHang {
 }
 
 // TODO: Add type for khuyen mai
-// enum LoaiKhuyenMai {
-
-// }
+enum LoaiKhuyenMai {
+    Voucher
+    PhoneSale
+}
 
 // Khuyen Mai
 model KhuyenMai {
@@ -93,6 +95,8 @@ model KhuyenMai {
     NgayKT      DateTime
     UuDai       Float // Giảm bao nhiêu phần %
     NoiDung     String
+
+    Type LoaiKhuyenMai
 
     PhamViKhuyenMai PhamViKhuyenMai?
     DonHang         DonHang[]
@@ -112,10 +116,10 @@ model PhamViKhuyenMai {
 
 model SanPhamYeuThich {
     MaSPM      String
-    SanPhamMau SanPhamMau @relation(fields: [MaSPM], references: [MaSPM])
+    SanPhamMau SanPhamMau @relation(fields: [MaSPM], references: [MaSPM], onDelete: Cascade, onUpdate: Cascade)
 
     MaKhachHang String
-    KhachHang   KhachHang @relation(fields: [MaKhachHang], references: [MaKhachHang])
+    KhachHang   KhachHang @relation(fields: [MaKhachHang], references: [MaKhachHang], onDelete: Cascade, onUpdate: Cascade)
 
     @@id([MaSPM, MaKhachHang])
 }
@@ -133,7 +137,6 @@ model SanPhamMau {
     DanhGia        DanhGia[] // 1 Sản phẩm có thể có nhiều đánh giá
     SanPhamBienThe SanPhamBienThe[]
     MatHang        MatHang[]
-    CartItem       CartItem[]
 
     ThongSoKyThuat ThongSoKyThuat?
 
@@ -260,7 +263,8 @@ model SanPhamBienThe {
 
     CT_DonHang CT_DonHang[]
 
-    MatHang MatHang[]
+    MatHang  MatHang[]
+    CartItem CartItem[]
 }
 
 model MatHang {

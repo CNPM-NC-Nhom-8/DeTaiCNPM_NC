@@ -1,8 +1,11 @@
 "use client";
 
-import { trpc } from "@/utils/trpc/client";
-import type { SanPhamMau } from "@prisma/client";
+import { RouterOutput } from "@/server/trpc/trpc";
+import { trpc } from "@/utils/trpc/react";
 
+import Link from "next/link";
+
+import { useUser } from "@clerk/nextjs";
 import {
 	Button,
 	ButtonGroup,
@@ -19,14 +22,14 @@ import {
 	Tooltip,
 	useDisclosure,
 } from "@nextui-org/react";
-import { useUser } from "@clerk/nextjs";
+import type { SanPhamBienThe, SanPhamMau } from "@prisma/client";
 
 import { AlertTriangle, Heart, LogIn, ShoppingCart, UserPlus } from "lucide-react";
-import Link from "next/link";
 import toast from "react-hot-toast";
-import { RouterOutput } from "@/server/trpc/trpc";
 
-export const PhoneCard = ({ sanPhamMau }: { sanPhamMau: RouterOutput["sanPham"]["getSanPham"] }) => {
+type ParamsType = { sanPhamMau: SanPhamMau & { SanPhamBienThe: SanPhamBienThe[] } };
+
+export const PhoneCard = ({ sanPhamMau }: ParamsType) => {
 	const {
 		data,
 		isLoading,
