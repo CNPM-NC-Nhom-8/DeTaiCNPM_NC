@@ -7,7 +7,7 @@ import { ThemeSwitcher } from "../ThemeSwitcher";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { SignOutButton } from "@clerk/nextjs";
+import { useClerk } from "@clerk/nextjs";
 import {
 	Avatar,
 	Button,
@@ -27,6 +27,7 @@ import { LogIn, LogOut, PackageSearch, Search, ShieldBan, ShoppingCart, UserCog,
 
 export const MainNavbar = () => {
 	const pathname = usePathname();
+	const { signOut } = useClerk();
 
 	const cart = api.cart.layGioHang.useQuery(undefined, { refetchOnReconnect: false, refetchOnWindowFocus: false });
 
@@ -34,6 +35,7 @@ export const MainNavbar = () => {
 		data: user,
 		isSuccess,
 		isLoading,
+		refetch,
 	} = api.common.getCurrentUser.useQuery(undefined, {
 		refetchOnReconnect: false,
 		refetchOnWindowFocus: false,
@@ -145,9 +147,12 @@ export const MainNavbar = () => {
 
 								<DropdownSection title="Vùng nguy hiểm">
 									<DropdownItem key="logout" color="danger" startContent={<LogOut size={16} />}>
-										<SignOutButton>
-											<button className="w-full text-left">Đăng Xuất</button>
-										</SignOutButton>
+										<button
+											className="w-full text-left"
+											onClick={async () => await signOut().then(async () => await refetch())}
+										>
+											Đăng Xuất
+										</button>
 									</DropdownItem>
 								</DropdownSection>
 							</DropdownMenu>

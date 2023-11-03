@@ -1,4 +1,4 @@
-import { authProcedure, createTRPCRouter } from "../trpc";
+import { authProcedure, createTRPCRouter, publicProcedure } from "../trpc";
 
 import type { Insurance } from "@prisma/client";
 
@@ -30,7 +30,7 @@ export const cartRouter = createTRPCRouter({
 			});
 		}),
 
-	layGioHang: authProcedure.query(async ({ ctx }) => {
+	layGioHang: publicProcedure.query(async ({ ctx }) => {
 		if (!ctx.userId) return [];
 
 		return ctx.db.cartItem.findMany({
