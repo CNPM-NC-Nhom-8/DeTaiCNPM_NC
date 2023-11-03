@@ -20,7 +20,7 @@ export function ThemeSwitcher() {
 	return (
 		<Button
 			isIconOnly
-			onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+			onPress={() => setTheme(theme === "dark" ? "light" : "dark")}
 			startContent={theme === "dark" ? <Moon size={20} /> : <Sun size={20} />}
 		/>
 	);

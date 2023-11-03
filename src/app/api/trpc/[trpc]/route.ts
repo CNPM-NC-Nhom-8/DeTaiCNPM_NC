@@ -1,6 +1,6 @@
 import { env } from "@/env.mjs";
-import { createTRPCContext } from "@/server/trpc/context";
-import { appRouter } from "@/server/trpc/routers";
+import { appRouter } from "@/server/api/root";
+import { createTRPCContext } from "@/server/api/trpc";
 
 import { type NextRequest } from "next/server";
 

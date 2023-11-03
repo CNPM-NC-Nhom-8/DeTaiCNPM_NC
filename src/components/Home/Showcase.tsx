@@ -51,7 +51,7 @@ const vouncher = [
 ];
 
 export const Showcase = () => {
-	const [currentTab, setTab] = useState<(typeof images)[number]>(images[0]);
+	const [currentTab, setTab] = useState<(typeof images)[number]>(images[0]!);
 
 	return (
 		<section className="flex h-max rounded-lg">

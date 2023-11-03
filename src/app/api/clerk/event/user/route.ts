@@ -1,5 +1,5 @@
 import { env } from "@/env.mjs";
-import { prisma } from "@/server/db/prisma";
+import { db } from "@/server/db";
 
 import { NextResponse } from "next/server";
 
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
 			const main_email = data.email_addresses.filter((email) => email.id === data.primary_email_address_id)[0]!;
 			const main_phoneNum = data.phone_numbers.filter((phone) => phone.id === data.primary_phone_number_id)[0];
 
-			await prisma.taiKhoan.create({
+			await db.taiKhoan.create({
 				data: {
 					MaTaiKhoan: data.id,
 					AnhDaiDien: data.image_url,
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
 		}
 
 		case "user.deleted": {
-			await prisma.taiKhoan.delete({
+			await db.taiKhoan.delete({
 				where: { MaTaiKhoan: data.id },
 				include: { KhachHang: true },
 			});
@@ -65,7 +65,7 @@ export async function POST(request: Request) {
 			const main_email = data.email_addresses.filter((email) => email.id === data.primary_email_address_id)[0]!;
 			const main_phoneNum = data.phone_numbers.filter((phone) => phone.id === data.primary_phone_number_id)[0];
 
-			await prisma.taiKhoan.update({
+			await db.taiKhoan.update({
 				where: { MaTaiKhoan: data.id },
 				data: {
 					AnhDaiDien: data.image_url,

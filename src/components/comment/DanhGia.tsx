@@ -1,8 +1,8 @@
 "use client";
 
-import type { RouterOutput } from "@/server/trpc/trpc";
-import { dayjs } from "@/utils/dayjs";
-import { trpc } from "@/utils/trpc/react";
+import { cn, dayjs } from "@/utils/common";
+import { api } from "@/utils/trpc/react";
+import type { RouterOutputs } from "@/utils/trpc/shared";
 
 import { DanhGiaTextArea } from "./DanhGiaTextArea";
 
@@ -14,7 +14,7 @@ import { Fragment, useState } from "react";
 import toast from "react-hot-toast";
 
 type ParamsType = {
-	SanPhamMau: RouterOutput["sanPham"]["getSanPham"];
+	SanPhamMau: RouterOutputs["sanPham"]["getSanPham"];
 	userJSON: string | null;
 };
 
@@ -28,7 +28,7 @@ export const DanhGiaSanPham = ({ SanPhamMau, userJSON }: ParamsType) => {
 		isLoading,
 		isSuccess,
 		refetch: refetchDanhGia,
-	} = trpc.danhGia.getDanhGia.useQuery(
+	} = api.danhGia.getDanhGia.useQuery(
 		{ maSPM: SanPhamMau.MaSPM, pageNum: pageNum },
 		{ refetchOnReconnect: false, refetchOnWindowFocus: false },
 	);
@@ -36,7 +36,7 @@ export const DanhGiaSanPham = ({ SanPhamMau, userJSON }: ParamsType) => {
 	if (isLoading) {
 		return (
 			<div className="flex items-center justify-center pt-4">
-				<Spinner label="Loading..." color="primary" />
+				<Spinner label="Đang tải..." color="primary" />
 			</div>
 		);
 	}
@@ -52,13 +52,7 @@ export const DanhGiaSanPham = ({ SanPhamMau, userJSON }: ParamsType) => {
 					</div>
 				</div>
 
-				<DanhGiaTextArea
-					maSPM={SanPhamMau.MaSPM}
-					user={user}
-					refetch={async () => {
-						await refetchDanhGia();
-					}}
-				/>
+				<DanhGiaTextArea maSPM={SanPhamMau.MaSPM} user={user} refetch={async () => await refetchDanhGia()} />
 			</div>
 		);
 
@@ -81,9 +75,7 @@ export const DanhGiaSanPham = ({ SanPhamMau, userJSON }: ParamsType) => {
 								danhGia={danhGia}
 								user={user}
 								isTraLoi={false}
-								refetch={async () => {
-									await refetchDanhGia();
-								}}
+								refetch={async () => await refetchDanhGia()}
 							/>
 						);
 					})}
@@ -93,8 +85,8 @@ export const DanhGiaSanPham = ({ SanPhamMau, userJSON }: ParamsType) => {
 };
 
 type DanhGiaParams = {
-	danhGia: RouterOutput["danhGia"]["getDanhGia"][number];
-	refetch: () => Promise<void>;
+	danhGia: RouterOutputs["danhGia"]["getDanhGia"][number];
+	refetch: () => Promise<unknown>;
 	user: User | null;
 	isTraLoi: boolean;
 };
@@ -103,18 +95,18 @@ const DanhGia = ({ danhGia, refetch, user: clerkUser, isTraLoi }: DanhGiaParams)
 	const [isClicked, setClicked] = useState(false);
 	const [isExpanded, setExpanded] = useState(false);
 
-	const trpcContext = trpc.useContext();
+	const trpcContext = api.useContext();
 
-	const user = trpc.taiKhoan.getTaiKhoan.useQuery(undefined, {
+	const user = api.common.getCurrentUser.useQuery(undefined, {
 		refetchOnReconnect: false,
 		refetchOnWindowFocus: false,
 	});
-	const traLoi = trpc.danhGia.getTraLoi.useQuery(
+	const traLoi = api.danhGia.getTraLoi.useQuery(
 		{ maDanhGia: danhGia.MaDanhGia },
 		{ refetchOnReconnect: false, refetchOnWindowFocus: false },
 	);
 
-	const xoaDanhGia = trpc.danhGia.xoaDanhGia.useMutation({
+	const xoaDanhGia = api.danhGia.deleteDanhGia.useMutation({
 		onSuccess: async () => {
 			await Promise.allSettled([
 				refetch(),
@@ -138,7 +130,7 @@ const DanhGia = ({ danhGia, refetch, user: clerkUser, isTraLoi }: DanhGiaParams)
 						isLoading={xoaDanhGia.isLoading}
 						className="absolute right-2 top-2 z-20"
 						startContent={xoaDanhGia.isLoading ? undefined : <X size={16} />}
-						onClick={() => xoaDanhGia.mutate({ maDanhGia: danhGia.MaDanhGia })}
+						onPress={() => xoaDanhGia.mutate({ maDanhGia: danhGia.MaDanhGia })}
 					/>
 				)}
 
@@ -162,7 +154,7 @@ const DanhGia = ({ danhGia, refetch, user: clerkUser, isTraLoi }: DanhGiaParams)
 								startContent={<Reply size={16} />}
 								size="sm"
 								variant="bordered"
-								onClick={() => setClicked((p) => !p)}
+								onPress={() => setClicked((p) => !p)}
 							>
 								Trả lời
 							</Button>
@@ -212,15 +204,15 @@ const DanhGia = ({ danhGia, refetch, user: clerkUser, isTraLoi }: DanhGiaParams)
 								<Button
 									variant="light"
 									size="sm"
+									onPress={() => setExpanded((p) => !p)}
 									startContent={
 										<Reply
 											size={16}
-											className={`transition-transform ${
-												isExpanded ? "-rotate-90" : "-rotate-180"
-											}`}
+											className={cn("-rotate-180 transition-transform", {
+												"-rotate-90": isExpanded,
+											})}
 										/>
 									}
-									onClick={() => setExpanded((p) => !p)}
 								>
 									{danhGia._count.TraLoiBoi} trả lời
 								</Button>
@@ -229,7 +221,7 @@ const DanhGia = ({ danhGia, refetch, user: clerkUser, isTraLoi }: DanhGiaParams)
 									<>
 										<Spacer y={2} />
 										<blockquote className="flex flex-col gap-4 border-l-2 border-default-500 pl-4">
-											<Spinner color="primary" label="Loading..." />
+											<Spinner color="primary" label="Đang tải..." />
 										</blockquote>
 									</>
 								)}
@@ -245,9 +237,7 @@ const DanhGia = ({ danhGia, refetch, user: clerkUser, isTraLoi }: DanhGiaParams)
 														danhGia={traLoi}
 														user={clerkUser}
 														isTraLoi={true}
-														refetch={async () => {
-															await refetch();
-														}}
+														refetch={async () => await refetch()}
 													/>
 												);
 											})}

@@ -1,11 +1,10 @@
 "use client";
 
-import type { RouterInput, RouterOutput } from "@/server/trpc/trpc";
-import { ObjectKeys, cn } from "@/utils/common";
-import { dayjs } from "@/utils/dayjs";
-import { trpc } from "@/utils/trpc/react";
+import { ObjectKeys, cn, dayjs } from "@/utils/common";
+import { api } from "@/utils/trpc/react";
+import type { RouterInputs, RouterOutputs } from "@/utils/trpc/shared";
 
-import { ActionLoaiKHButton } from "./ActionLoaiKH";
+import { LoaiKHActions } from "./LoaiKHActions";
 import { UserActions } from "./UserActions";
 
 import {
@@ -19,8 +18,8 @@ import {
 	Pagination,
 	Select,
 	SelectItem,
-	Selection,
-	SortDescriptor,
+	type Selection,
+	type SortDescriptor,
 	Spinner,
 	Table,
 	TableBody,
@@ -36,9 +35,9 @@ import { ChevronDownIcon, RotateCcw, SearchIcon } from "lucide-react";
 import { type ChangeEvent, useCallback, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
-export type userType = RouterOutput["admin"]["layTongThongTinNguoiDung"]["data"][number];
+export type UserType = RouterOutputs["admin"]["getUsers"]["data"][number];
 
-const allColumns: { name: string; uid: keyof userType | "Actions"; sortable?: boolean }[] = [
+const allColumns: { name: string; uid: keyof UserType | "Actions"; sortable?: boolean }[] = [
 	{ name: "ID", uid: "MaTaiKhoan", sortable: true },
 	{ name: "Người dùng", uid: "TenTaiKhoan", sortable: true },
 	{ name: "Số DT", uid: "SDT", sortable: true },
@@ -64,7 +63,7 @@ const INITIAL_VISIBLE_COLUMNS: (typeof allColumns)[number]["uid"][] = [
 ];
 
 const searchType: Array<{
-	key: NonNullable<RouterInput["admin"]["layTongThongTinNguoiDung"]["search"]>["query"]["queryType"];
+	key: NonNullable<RouterInputs["admin"]["getUsers"]["search"]>["query"]["queryType"];
 	value: string;
 }> = [
 	{ key: "Search-ID", value: "Mã ID" },
@@ -81,8 +80,8 @@ export const UserTable = ({
 	initialLoaiKH,
 }: {
 	currentUserId: string;
-	initialUsers: RouterOutput["admin"]["layTongThongTinNguoiDung"];
-	initialLoaiKH: RouterOutput["admin"]["layLoaiKH"];
+	initialUsers: RouterOutputs["admin"]["getUsers"];
+	initialLoaiKH: RouterOutputs["common"]["getLoaiKH"];
 }) => {
 	const [page, setPage] = useState(1);
 	const [rowsPerPage, setRowsPerPage] = useState<(typeof perPage)[number]>(6);
@@ -103,7 +102,7 @@ export const UserTable = ({
 		data: users,
 		isRefetching,
 		refetch: refetchData,
-	} = trpc.admin.layTongThongTinNguoiDung.useQuery(
+	} = api.admin.getUsers.useQuery(
 		{
 			page,
 			perPage: rowsPerPage,
@@ -125,7 +124,7 @@ export const UserTable = ({
 		},
 	);
 
-	const { data: LoaiKH, refetch: refetchLoaiKH } = trpc.admin.layLoaiKH.useQuery(undefined, {
+	const { data: LoaiKH, refetch: refetchLoaiKH } = api.common.getLoaiKH.useQuery(undefined, {
 		initialData: initialLoaiKH,
 		refetchOnReconnect: false,
 		refetchOnWindowFocus: false,
@@ -140,7 +139,7 @@ export const UserTable = ({
 		direction: "ascending",
 	});
 
-	const capNhatNguoiDung = trpc.admin.capNhatNguoiDung.useMutation({
+	const capNhatNguoiDung = api.admin.updateUser.useMutation({
 		onSuccess: async () => refetchData(),
 	});
 
@@ -156,8 +155,8 @@ export const UserTable = ({
 	const pages = Math.ceil(users.count / rowsPerPage);
 	const sortedItems = useMemo(() => {
 		return [...users.data].sort((a, b) => {
-			const first = a[sortDescriptor.column as keyof userType];
-			const second = b[sortDescriptor.column as keyof userType];
+			const first = a[sortDescriptor.column as keyof UserType];
+			const second = b[sortDescriptor.column as keyof UserType];
 
 			let cmp;
 
@@ -316,7 +315,7 @@ export const UserTable = ({
 							})}
 						</Select>
 
-						<ActionLoaiKHButton
+						<LoaiKHActions
 							refetch={async () => await Promise.allSettled([refetchData(), refetchLoaiKH()])}
 							LoaiKH={LoaiKH}
 						/>
@@ -336,13 +335,13 @@ export const UserTable = ({
 								)}
 							/>
 						}
-						onClick={async () => {
-							await Promise.allSettled([refetchData(), refetchLoaiKH()]);
-						}}
+						// eslint-disable-next-line @typescript-eslint/no-misused-promises
+						onPress={async () => await Promise.allSettled([refetchData(), refetchLoaiKH()])}
 					/>
 				</div>
 			</div>
 		);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
 		filterValue,
 		visibleColumns,
@@ -369,11 +368,12 @@ export const UserTable = ({
 				/>
 			</div>
 		);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [page, pages, isRefetching, users.count]);
 
 	const renderCell = useCallback(
-		(user: userType, columnKey: (typeof allColumns)[number]["uid"]) => {
-			let cellValue = user[columnKey as keyof userType];
+		(user: UserType, columnKey: (typeof allColumns)[number]["uid"]) => {
+			let cellValue = user[columnKey as keyof UserType];
 			if (cellValue instanceof Date) cellValue = dayjs(cellValue).format("DD/MM/YYYY - HH:mm:ss");
 
 			switch (columnKey) {
@@ -459,6 +459,7 @@ export const UserTable = ({
 					return cellValue;
 			}
 		},
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[LoaiKH],
 	);
 
@@ -489,7 +490,7 @@ export const UserTable = ({
 
 			<TableBody
 				isLoading={isRefetching}
-				loadingContent={<Spinner label="Loading..." />}
+				loadingContent={<Spinner label="Đang tải..." />}
 				emptyContent={"Không tìm thấy người dùng nào"}
 				items={sortedItems}
 			>
@@ -504,4 +505,3 @@ export const UserTable = ({
 		</Table>
 	);
 };
-

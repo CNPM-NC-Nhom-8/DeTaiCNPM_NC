@@ -1,6 +1,6 @@
 import { BottomFooter } from "@/components/layout/BottomFooter";
-import { MainLayout } from "@/components/layout/mainLayout";
-import { MainNavbar } from "@/components/layout/mainNavbar";
+import { MainLayout } from "@/components/layout/MainLayout";
+import { MainNavbar } from "@/components/layout/MainNavbar";
 import { cn } from "@/utils/common";
 
 import "./globals.css";

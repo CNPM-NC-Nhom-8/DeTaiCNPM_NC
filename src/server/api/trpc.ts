@@ -6,15 +6,52 @@
  * TL;DR - This is where all the tRPC server stuff is created and plugged in. The pieces you will
  * need to use are documented accordingly near the end.
  */
-import type { createTRPCContext } from "./context";
-import type { AppRouter } from "./routers";
+import { db } from "@/server/db";
 
-import { type NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 
-import { TRPCError, type inferRouterInputs, type inferRouterOutputs, initTRPC } from "@trpc/server";
+import { auth } from "@clerk/nextjs";
+import { TRPCError, initTRPC } from "@trpc/server";
 
 import superjson from "superjson";
 import { ZodError } from "zod";
+
+/**
+ * 1. CONTEXT
+ *
+ * This section defines the "contexts" that are available in the backend API.
+ *
+ * These allow you to access things when processing a request, like the database, the session, etc.
+ */
+interface CreateContextOptions {
+	headers: Headers;
+}
+
+/**
+ * This helper generates the "internals" for a tRPC context. If you need to use it, you can export
+ * it from here.
+ *
+ * Examples of things you may need it for:
+ * - testing, so we don't have to mock Next.js' req/res
+ * - tRPC's `createSSGHelpers`, where we don't have req/res
+ *
+ * @see https://create.t3.gg/en/usage/trpc#-serverapitrpcts
+ */
+export const createInnerTRPCContext = (opts: CreateContextOptions) => {
+	const { userId } = auth();
+
+	return { headers: opts.headers, db, userId };
+};
+
+/**
+ * This is the actual context you will use in your router. It will be used to process every request
+ * that goes through your tRPC endpoint.
+ *
+ * @see https://trpc.io/docs/context
+ */
+export const createTRPCContext = (opts: { req: NextRequest }) => {
+	return createInnerTRPCContext({ headers: opts.req.headers });
+};
 
 /**
  * 2. INITIALIZATION
@@ -27,8 +64,14 @@ import { ZodError } from "zod";
 const t = initTRPC.context<typeof createTRPCContext>().create({
 	transformer: superjson,
 	errorFormatter({ shape, error }) {
+		const message =
+			error.cause instanceof ZodError
+				? error.cause.issues.map((issue) => issue.message).join(", ")
+				: shape.message;
+
 		return {
 			...shape,
+			message,
 			data: {
 				...shape.data,
 				zodError: error.cause instanceof ZodError ? error.cause.flatten() : null,
@@ -44,7 +87,7 @@ const isAuthed = t.middleware(({ next, ctx }) => {
 });
 
 const isStaff = isAuthed.unstable_pipe(async ({ next, ctx }) => {
-	const data = await ctx.prisma.taiKhoan.findUnique({ where: { MaTaiKhoan: ctx.userId } });
+	const data = await ctx.db.taiKhoan.findUnique({ where: { MaTaiKhoan: ctx.userId } });
 
 	if (!data)
 		throw new TRPCError({
@@ -61,8 +104,8 @@ const isStaff = isAuthed.unstable_pipe(async ({ next, ctx }) => {
 	return next({ ctx: { ...ctx, userId: ctx.userId } });
 });
 
-const isAdmin = isStaff.unstable_pipe(async ({ next, ctx }) => {
-	const data = await ctx.prisma.taiKhoan.findUnique({ where: { MaTaiKhoan: ctx.userId } });
+const isAdmin = isAuthed.unstable_pipe(async ({ next, ctx }) => {
+	const data = await ctx.db.taiKhoan.findUnique({ where: { MaTaiKhoan: ctx.userId } });
 
 	if (!data)
 		throw new TRPCError({
@@ -91,11 +134,8 @@ const isAdmin = isStaff.unstable_pipe(async ({ next, ctx }) => {
  *
  * @see https://trpc.io/docs/router
  */
-export const router = t.router;
+export const createTRPCRouter = t.router;
 export const publicProcedure = t.procedure;
 export const authProcedure = t.procedure.use(isAuthed);
 export const staffProcedure = t.procedure.use(isStaff);
 export const adminProcedure = t.procedure.use(isAdmin);
-
-export type RouterInput = inferRouterInputs<AppRouter>;
-export type RouterOutput = inferRouterOutputs<AppRouter>;

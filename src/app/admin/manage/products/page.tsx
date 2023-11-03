@@ -1,3 +1,4 @@
+import { ProductTable } from "@/components/admin/products/ProductTable";
 import { ForbiddenPage } from "@/components/common/Page403";
 import { api } from "@/utils/trpc/server";
 
@@ -16,9 +17,18 @@ export const generateMetadata = async (): Promise<Metadata> => {
 	return { title: "Quản lý nhân sự - Trang Admin" };
 };
 
-export default async function Page() {
+export default async function ProductManagePage() {
 	const user = await getUser();
 	if (!user) return <ForbiddenPage />;
 
-	return <main></main>;
+	const [productData, HangSX] = await Promise.all([
+		api.admin.getProductInfo.query({ page: 1, perPage: 6 }),
+		api.common.getHangSX.query(),
+	]);
+
+	return (
+		<section className="flex w-full flex-col gap-2">
+			<ProductTable initialProduct={productData} HangSX={HangSX} />
+		</section>
+	);
 }

@@ -1,9 +1,9 @@
-import { Showcase } from "@/components/Home/Showcase";
 import { PhoneCard } from "@/components/common/PhoneCard";
-import { prisma } from "@/server/db/prisma";
+import { Showcase } from "@/components/home/Showcase";
+import { db } from "@/server/db";
 
 export default async function Home() {
-	const data = await prisma.sanPhamMau.findMany({ include: { SanPhamBienThe: true } });
+	const data = await db.sanPhamMau.findMany({ include: { SanPhamBienThe: true } });
 
 	return (
 		<main className="container flex max-w-6xl flex-grow flex-col gap-6 px-6 py-4">

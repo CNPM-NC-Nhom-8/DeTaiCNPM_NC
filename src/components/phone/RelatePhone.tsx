@@ -1,6 +1,6 @@
 "use client";
 
-import { trpc } from "@/utils/trpc/react";
+import { api } from "@/utils/trpc/react";
 
 import { PhoneCard } from "../common/PhoneCard";
 import { PhoneCardSkeleton } from "../common/PhoneCardSkeletons";
@@ -8,7 +8,7 @@ import { PhoneCardSkeleton } from "../common/PhoneCardSkeletons";
 import { Tab, Tabs } from "@nextui-org/react";
 
 export const RelatePhone = ({ maHSX }: { maHSX: string }) => {
-	const { data, isLoading } = trpc.sanPham.getSanPhamTuongTu.useQuery(
+	const { data, isLoading } = api.sanPham.getSanPhamTuongTu.useQuery(
 		{ maHSX },
 		{ refetchOnReconnect: false, refetchOnWindowFocus: false },
 	);

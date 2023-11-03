@@ -1,10 +1,10 @@
 "use client";
 
-import { RouterOutput } from "@/server/trpc/trpc";
-import { trpc } from "@/utils/trpc/react";
+import { api } from "@/utils/trpc/react";
+import type { RouterOutputs } from "@/utils/trpc/shared";
 
 import { Badge, Button, ButtonGroup, Card, CardHeader, Radio, RadioGroup, Spinner } from "@nextui-org/react";
-import { Insurance } from "@prisma/client";
+import type { Insurance } from "@prisma/client";
 
 import { CheckIcon, DollarSign, ShieldCheck, ShoppingCart } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -33,7 +33,7 @@ const InsuranceTypeOptions: { price: number; type: Insurance; description: strin
 	},
 ];
 
-export const OrderActionSideBar = ({ data }: { data: RouterOutput["sanPham"]["getSanPham"] }) => {
+export const OrderActionSideBar = ({ data }: { data: RouterOutputs["sanPham"]["getSanPham"] }) => {
 	const moneyFormat = new Intl.NumberFormat("de-DE", { style: "currency", currency: "vnd" });
 
 	const DungLuong = Array.from(new Set(data.SanPhamBienThe.sort((a, b) => a.Gia - b.Gia).map((SP) => SP.DungLuong)));
@@ -44,8 +44,8 @@ export const OrderActionSideBar = ({ data }: { data: RouterOutput["sanPham"]["ge
 
 	const [selectedInsurance, setInsurance] = useState<Insurance>("None");
 
-	const trpcContext = trpc.useContext();
-	const themVaoGioHang = trpc.cart.themVaoGiohang.useMutation({
+	const trpcContext = api.useUtils();
+	const themVaoGioHang = api.cart.themVaoGiohang.useMutation({
 		onSuccess: async () => {
 			await trpcContext.cart.layGioHang.refetch();
 		},
@@ -56,7 +56,8 @@ export const OrderActionSideBar = ({ data }: { data: RouterOutput["sanPham"]["ge
 			(SP) => SP.DungLuong === selectedDungLuong && SP.Mau === selectedMauSac,
 		)[0];
 
-		if (!SP) setMauSac(data.SanPhamBienThe.filter((SP) => SP.DungLuong === selectedDungLuong)[0].Mau);
+		if (!SP) setMauSac(data.SanPhamBienThe.filter((SP) => SP.DungLuong === selectedDungLuong)[0]!.Mau);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [selectedDungLuong]);
 
 	return (
@@ -67,7 +68,7 @@ export const OrderActionSideBar = ({ data }: { data: RouterOutput["sanPham"]["ge
 
 					return (
 						<Badge
-							key={SP.MaSP}
+							key={SP!.MaSP}
 							content={<CheckIcon size={16} />}
 							isInvisible={selectedDungLuong !== item}
 							disableOutline
@@ -80,7 +81,7 @@ export const OrderActionSideBar = ({ data }: { data: RouterOutput["sanPham"]["ge
 									}`}
 								>
 									<span className="font-semibold">{item}</span>
-									<span>{moneyFormat.format(SP.Gia)}</span>
+									<span>{moneyFormat.format(SP!.Gia)}</span>
 								</Card>
 							</div>
 						</Badge>
@@ -97,7 +98,7 @@ export const OrderActionSideBar = ({ data }: { data: RouterOutput["sanPham"]["ge
 					)[0];
 
 					if (!SP) {
-						const price = data.SanPhamBienThe.filter((SP) => SP.DungLuong === selectedDungLuong)[0].Gia;
+						const price = data.SanPhamBienThe.filter((SP) => SP.DungLuong === selectedDungLuong)[0]!.Gia;
 
 						return (
 							<Badge key={`${item}-${selectedDungLuong}-notFound`} disableOutline isInvisible>

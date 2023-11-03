@@ -1,6 +1,6 @@
 "use client";
 
-import { trpc } from "@/utils/trpc/react";
+import { api } from "@/utils/trpc/react";
 
 import type { User as ClerkUser } from "@clerk/clerk-sdk-node";
 import { Button, Input, Textarea, User } from "@nextui-org/react";
@@ -9,7 +9,7 @@ import { SendHorizontal } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-type ParamsType = { maSPM: string; maTraLoi?: string; user?: ClerkUser | null; refetch: () => Promise<void> };
+type ParamsType = { maSPM: string; maTraLoi?: string; user?: ClerkUser | null; refetch: () => Promise<unknown> };
 
 export const DanhGiaTextArea = ({ maSPM, maTraLoi, user, refetch }: ParamsType) => {
 	const [noiDung, setNoiDung] = useState("");
@@ -18,7 +18,7 @@ export const DanhGiaTextArea = ({ maSPM, maTraLoi, user, refetch }: ParamsType) 
 		user ? user.username ?? (user.lastName + " " + user.firstName).trim() : "",
 	);
 
-	const danhGia = trpc.danhGia.danhGiaBanTin.useMutation({
+	const danhGia = api.danhGia.danhGiaBanTin.useMutation({
 		onSuccess: async () => {
 			setNoiDung("");
 			setTenKH(user ? user.username ?? (user.lastName + " " + user.firstName).trim() : "");

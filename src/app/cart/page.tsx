@@ -1,6 +1,6 @@
-import { CartItem } from "@/components/Cart/CartItem";
-import { CartNav } from "@/components/Cart/Nav";
-import { trpc } from "@/utils/trpc/server";
+import { CartItem } from "@/components/cart/CartItem";
+import { CartNav } from "@/components/cart/Nav";
+import { api } from "@/utils/trpc/server";
 
 import Link from "next/link";
 
@@ -10,10 +10,10 @@ import { Button } from "@nextui-org/react";
 import { ShoppingCart } from "lucide-react";
 
 export default async function Page() {
-	const moneyFormat = new Intl.NumberFormat("de-DE", { style: "currency", currency: "vnd" });
+	const _moneyFormat = new Intl.NumberFormat("de-DE", { style: "currency", currency: "vnd" });
 
-	const user = (await currentUser())!;
-	const cart = await trpc.cart.layGioHang.query();
+	const _user = (await currentUser())!;
+	const cart = await api.cart.layGioHang.query();
 
 	return (
 		<main className="container flex max-w-5xl flex-grow flex-col gap-4 px-6 py-4">

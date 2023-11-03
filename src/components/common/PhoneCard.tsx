@@ -1,7 +1,6 @@
 "use client";
 
-import { RouterOutput } from "@/server/trpc/trpc";
-import { trpc } from "@/utils/trpc/react";
+import { api } from "@/utils/trpc/react";
 
 import Link from "next/link";
 
@@ -34,14 +33,11 @@ export const PhoneCard = ({ sanPhamMau }: ParamsType) => {
 		data,
 		isLoading,
 		refetch: refetchYeuThich,
-	} = trpc.sanPham.checkThichSP.useQuery(
+	} = api.sanPham.checkThichSP.useQuery(
 		{ maSPM: sanPhamMau.MaSPM },
-		{
-			refetchOnReconnect: false,
-			refetchOnWindowFocus: false,
-		},
+		{ refetchOnReconnect: false, refetchOnWindowFocus: false },
 	);
-	const yeuThich = trpc.sanPham.yeuThich.useMutation({
+	const yeuThich = api.sanPham.yeuThich.useMutation({
 		onSuccess: async () => await refetchYeuThich(),
 		onError: ({ message }) => toast.error("Lỗi: " + message),
 	});
@@ -51,7 +47,7 @@ export const PhoneCard = ({ sanPhamMau }: ParamsType) => {
 	const { isLoaded, isSignedIn } = useUser();
 	const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
-	const giaGoc = sanPhamMau.SanPhamBienThe.sort((a, b) => a.Gia - b.Gia)[0].Gia;
+	const giaGoc = sanPhamMau.SanPhamBienThe.sort((a, b) => a.Gia - b.Gia)[0]!.Gia;
 
 	return (
 		<>
@@ -73,12 +69,7 @@ export const PhoneCard = ({ sanPhamMau }: ParamsType) => {
 
 				<ButtonGroup className="w-full">
 					<Tooltip content="Thêm vào giỏ hàng" placement="bottom">
-						<Button
-							size="sm"
-							className="w-full"
-							startContent={<ShoppingCart size={16} />}
-							onClick={() => {}}
-						/>
+						<Button size="sm" className="w-full" startContent={<ShoppingCart size={16} />} />
 					</Tooltip>
 
 					<Tooltip content="Yêu thích sản phẩm" placement="bottom">
@@ -91,7 +82,7 @@ export const PhoneCard = ({ sanPhamMau }: ParamsType) => {
 									<Heart size={16} className={data ? "fill-red-600 stroke-red-600" : ""} />
 								) : undefined
 							}
-							onClick={() => {
+							onPress={() => {
 								if (!isSignedIn) return onOpen();
 								yeuThich.mutate({ maSPM: sanPhamMau.MaSPM });
 							}}

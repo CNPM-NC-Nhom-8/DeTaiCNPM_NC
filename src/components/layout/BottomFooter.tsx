@@ -1,5 +1,3 @@
-"use client";
-
 import { Divider, Link, User } from "@nextui-org/react";
 
 export const BottomFooter = () => {

@@ -1,13 +1,13 @@
 "use client";
 
-import { trpc } from "@/utils/trpc/react";
+import { api } from "@/utils/trpc/react";
 
 import { ThemeSwitcher } from "../ThemeSwitcher";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { SignOutButton, useUser } from "@clerk/nextjs";
+import { SignOutButton } from "@clerk/nextjs";
 import {
 	Avatar,
 	Button,
@@ -26,12 +26,15 @@ import {
 import { LogIn, LogOut, PackageSearch, Search, ShieldBan, ShoppingCart, UserCog, Users } from "lucide-react";
 
 export const MainNavbar = () => {
-	const { isLoaded, isSignedIn, user } = useUser();
 	const pathname = usePathname();
 
-	const cart = trpc.cart.layGioHang.useQuery(undefined, { refetchOnReconnect: false, refetchOnWindowFocus: false });
+	const cart = api.cart.layGioHang.useQuery(undefined, { refetchOnReconnect: false, refetchOnWindowFocus: false });
 
-	const { data, isSuccess } = trpc.taiKhoan.getTaiKhoan.useQuery(undefined, {
+	const {
+		data: user,
+		isSuccess,
+		isLoading,
+	} = api.common.getCurrentUser.useQuery(undefined, {
 		refetchOnReconnect: false,
 		refetchOnWindowFocus: false,
 	});
@@ -78,22 +81,23 @@ export const MainNavbar = () => {
 						<DropdownTrigger>
 							<Avatar
 								isBordered
+								showFallback
 								as="button"
 								className="transition-transform"
 								color="default"
 								size="sm"
-								src={!isLoaded && !!isSignedIn ? undefined : user?.imageUrl}
+								src={isSuccess && user ? user.AnhDaiDien : undefined}
 							/>
 						</DropdownTrigger>
 
-						{isLoaded && isSignedIn ? (
+						{!isLoading && isSuccess && user ? (
 							<DropdownMenu aria-label="Profile Actions" variant="flat" closeOnSelect={false}>
 								<DropdownItem showDivider key="profile" className="h-14 gap-2">
 									<p className="font-semibold">Đăng nhập với</p>
-									<p className="font-semibold">{user.emailAddresses[0].emailAddress}</p>
+									<p className="font-semibold">{user.Email}</p>
 								</DropdownItem>
 
-								{isSuccess && data && (data.Role === "QuanTriVien" || data.Role === "NhanVien") ? (
+								{user.Role === "QuanTriVien" || user.Role === "NhanVien" ? (
 									<DropdownSection title="Quản Lý">
 										<DropdownItem key="admin" startContent={<ShieldBan size={16} />}>
 											<Link className="block w-full" href="/admin">
@@ -102,24 +106,26 @@ export const MainNavbar = () => {
 										</DropdownItem>
 
 										<DropdownItem key="productManage" startContent={<PackageSearch size={16} />}>
-											<Link className="block w-full" href="/admin/quan-li-san-pham">
-												Quản lý sản phầm
+											<Link className="block w-full" href="/admin/manage/products">
+												Quản lý sản phẩm
 											</Link>
 										</DropdownItem>
 
-										{data.Role === "QuanTriVien" ? (
+										{user.Role === "QuanTriVien" ? (
 											<DropdownItem key="staffManage" startContent={<Users size={16} />}>
-												<Link className="block w-full" href="/admin/quan-li-nhan-su">
-													Quản lý nhân sự
+												<Link className="block w-full" href="/admin/manage/users">
+													Quản lý người dùng
 												</Link>
 											</DropdownItem>
 										) : (
 											// Dumb typescript issue
+											// eslint-disable-next-line @typescript-eslint/no-explicit-any
 											(undefined as any)
 										)}
 									</DropdownSection>
 								) : (
 									// Dumb typescript issue
+									// eslint-disable-next-line @typescript-eslint/no-explicit-any
 									(undefined as any)
 								)}
 

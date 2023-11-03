@@ -15,7 +15,7 @@ export default function Page() {
 			{isLoaded ? (
 				<UserProfile appearance={{ baseTheme: theme === "dark" ? dark : undefined }} />
 			) : (
-				<Spinner label="Loading..." />
+				<Spinner label="Đang tải..." />
 			)}
 		</div>
 	);

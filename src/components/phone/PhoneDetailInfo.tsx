@@ -1,15 +1,15 @@
 "use client";
 
-import { RouterOutput } from "@/server/trpc/trpc";
-import { ThongSoKeyVietnamese } from "@/utils/ThongSoKey";
+import { ThongSoKeyVietnamese } from "@/utils/common";
 import { ObjectKeys } from "@/utils/common";
+import type { RouterOutputs } from "@/utils/trpc/shared";
 
 import { Card, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@nextui-org/react";
 
 export const PhoneDetailInfo = ({
 	data,
 }: {
-	data: NonNullable<RouterOutput["sanPham"]["getSanPham"]["ThongSoKyThuat"]>;
+	data: NonNullable<RouterOutputs["sanPham"]["getSanPham"]["ThongSoKyThuat"]>;
 }) => {
 	return (
 		<div>

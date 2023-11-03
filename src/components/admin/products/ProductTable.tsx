@@ -1,13 +1,13 @@
 "use client";
 
-import { RouterOutput } from "@/server/trpc/trpc";
-import { dayjs } from "@/utils/dayjs";
-import { trpc } from "@/utils/trpc/react";
+import { dayjs } from "@/utils/common";
+import { api } from "@/utils/trpc/react";
+import type { RouterOutputs } from "@/utils/trpc/shared";
 
 import {
 	Pagination,
-	Selection,
-	SortDescriptor,
+	type Selection,
+	type SortDescriptor,
 	Spinner,
 	Table,
 	TableBody,
@@ -16,12 +16,11 @@ import {
 	TableHeader,
 	TableRow,
 } from "@nextui-org/react";
-import { HangSanXuat } from "@prisma/client";
 
 import { useCallback, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
-type productType = RouterOutput["admin"]["layThongTinSanPham"]["data"][number];
+type productType = RouterOutputs["admin"]["getProductInfo"]["data"][number];
 
 const allColumns: { name: string; uid: keyof productType | "Actions"; sortable?: boolean }[] = [
 	{ name: "", uid: "Actions" },
@@ -33,8 +32,8 @@ export const ProductTable = ({
 	initialProduct,
 	HangSX,
 }: {
-	initialProduct: RouterOutput["admin"]["layThongTinSanPham"];
-	HangSX: HangSanXuat[];
+	initialProduct: RouterOutputs["admin"]["getProductInfo"];
+	HangSX: RouterOutputs["common"]["getHangSX"];
 }) => {
 	const [page, setPage] = useState(1);
 	const [rowsPerPage, setRowsPerPage] = useState<5 | 10 | 15>(5);
@@ -43,7 +42,7 @@ export const ProductTable = ({
 		data: products,
 		isRefetching,
 		refetch: refetchData,
-	} = trpc.admin.layThongTinSanPham.useQuery(
+	} = api.admin.getProductInfo.useQuery(
 		{
 			page,
 			perPage: rowsPerPage,
@@ -114,6 +113,9 @@ export const ProductTable = ({
 		let cellValue = user[columnKey as keyof productType];
 		if (cellValue instanceof Date) cellValue = dayjs(cellValue).format("DD/MM/YYYY - HH:mm:ss");
 
+		// * NOTE: Make typescript less mad
+		if (typeof cellValue === "object") cellValue = "";
+
 		switch (columnKey) {
 			default:
 				return cellValue;
@@ -121,41 +123,40 @@ export const ProductTable = ({
 	}, []);
 
 	return (
-		<></>
-		// <Table
-		// 	isHeaderSticky
-		// 	bottomContent={bottomContent}
-		// 	bottomContentPlacement="outside"
-		// 	sortDescriptor={sortDescriptor}
-		// 	topContentPlacement="outside"
-		// 	onSortChange={setSortDescriptor}
-		// 	classNames={{ base: "flex-grow", wrapper: "flex-grow" }}
-		// >
-		// 	<TableHeader columns={headerColumns}>
-		// 		{(column) => (
-		// 			<TableColumn
-		// 				key={column.uid}
-		// 				align={column.uid === "Actions" ? "center" : "start"}
-		// 				allowsSorting={column.sortable}
-		// 			>
-		// 				{column.name}
-		// 			</TableColumn>
-		// 		)}
-		// 	</TableHeader>
-		// 	<TableBody
-		// 		isLoading={isRefetching}
-		// 		loadingContent={<Spinner label="Loading..." />}
-		// 		emptyContent={"Không tìm thấy sản phẩm nào"}
-		// 		items={sortedItems}
-		// 	>
-		// 		{(item) => (
-		// 			<TableRow key={item.MaSPM}>
-		// 				{(columnKey) => (
-		// 					<TableCell>{renderCell(item, columnKey as (typeof allColumns)[number]["uid"])}</TableCell>
-		// 				)}
-		// 			</TableRow>
-		// 		)}
-		// 	</TableBody>
-		// </Table>
+		<Table
+			isHeaderSticky
+			bottomContent={bottomContent}
+			bottomContentPlacement="outside"
+			sortDescriptor={sortDescriptor}
+			topContentPlacement="outside"
+			onSortChange={setSortDescriptor}
+			classNames={{ base: "flex-grow", wrapper: "flex-grow" }}
+		>
+			<TableHeader columns={headerColumns}>
+				{(column) => (
+					<TableColumn
+						key={column.uid}
+						align={column.uid === "Actions" ? "center" : "start"}
+						allowsSorting={column.sortable}
+					>
+						{column.name}
+					</TableColumn>
+				)}
+			</TableHeader>
+			<TableBody
+				isLoading={isRefetching}
+				loadingContent={<Spinner label="Đang tải..." />}
+				emptyContent={"Không tìm thấy sản phẩm nào"}
+				items={sortedItems}
+			>
+				{(item) => (
+					<TableRow key={item.MaSPM}>
+						{(columnKey) => (
+							<TableCell>{renderCell(item, columnKey as (typeof allColumns)[number]["uid"])}</TableCell>
+						)}
+					</TableRow>
+				)}
+			</TableBody>
+		</Table>
 	);
 };

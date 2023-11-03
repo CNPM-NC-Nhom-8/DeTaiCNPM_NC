@@ -1,7 +1,8 @@
 "use client";
 
 import { cn } from "@/utils/common";
-import { trpc } from "@/utils/trpc/react";
+import { api } from "@/utils/trpc/react";
+import type { RouterOutputs } from "@/utils/trpc/shared";
 
 import {
 	Button,
@@ -20,20 +21,25 @@ import {
 	SelectItem,
 	useDisclosure,
 } from "@nextui-org/react";
-import type { LoaiKhachHang } from "@prisma/client";
 
 import { Pencil, PlusCircle, Settings2, XCircle } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-export const ActionLoaiKHButton = ({ refetch, LoaiKH }: { refetch: () => Promise<any>; LoaiKH: LoaiKhachHang[] }) => {
+export const LoaiKHActions = ({
+	refetch,
+	LoaiKH,
+}: {
+	refetch: () => Promise<unknown>;
+	LoaiKH: RouterOutputs["common"]["getLoaiKH"];
+}) => {
 	const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
 
 	const [actionType, setActionType] = useState<"Add" | "Edit" | "Delete">();
 	const [tenLoaiKH, setTenLKH] = useState("");
 	const [selectedMaLKH, setMaLKH] = useState<string>();
 
-	const actionLoaiKH = trpc.admin.actionLoaiKH.useMutation({
+	const actionLoaiKH = api.admin.LoaiKHActions.useMutation({
 		onSuccess: async () => {
 			await refetch();
 			onClose();

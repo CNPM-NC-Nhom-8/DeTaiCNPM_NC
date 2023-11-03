@@ -1,4 +1,4 @@
-import { DanhGiaSanPham } from "@/components/DanhGia/DanhGia";
+import { DanhGiaSanPham } from "@/components/comment/DanhGia";
 import { BasicPhoneInfo } from "@/components/phone/BasicPhoneInfo";
 import { FAQ } from "@/components/phone/FAQ";
 import { PhoneImageShowcase } from "@/components/phone/ImageShowcase";
@@ -6,7 +6,7 @@ import { OrderActionSideBar } from "@/components/phone/OrderActionSideBar";
 import { PhoneDetailInfo } from "@/components/phone/PhoneDetailInfo";
 import { PhoneFeatures } from "@/components/phone/PhoneFeature";
 import { RelatePhone } from "@/components/phone/RelatePhone";
-import { trpc } from "@/utils/trpc/server";
+import { api } from "@/utils/trpc/server";
 
 import type { Metadata } from "next";
 
@@ -17,7 +17,7 @@ export const generateMetadata = async ({
 }: {
 	params: { phone: string };
 }): Promise<Metadata> => {
-	const sanPham = await trpc.sanPham.getSanPham.query({ tenSP: encodePhone });
+	const sanPham = await api.sanPham.getSanPham.query({ tenSP: encodePhone });
 
 	if (!sanPham) return { title: "Sản phẩm không tồn tại" };
 	return { title: sanPham.TenSP };
@@ -25,7 +25,7 @@ export const generateMetadata = async ({
 
 export default async function Page({ params: { phone: encodePhone } }: { params: { phone: string } }) {
 	const user = await currentUser();
-	const data = await trpc.sanPham.getSanPham.query({ tenSP: encodePhone });
+	const data = await api.sanPham.getSanPham.query({ tenSP: encodePhone });
 
 	return (
 		<main className="container flex max-w-6xl flex-grow flex-col gap-6 px-6 py-4">

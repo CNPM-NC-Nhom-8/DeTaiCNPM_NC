@@ -1,33 +1,15 @@
 import { env } from "@/env.mjs";
 
-import { adminProcedure, publicProcedure, router } from "../trpc";
+import { adminProcedure, createTRPCRouter } from "../trpc";
 
 import { clerkClient } from "@clerk/nextjs";
-import { Prisma, Role } from "@prisma/client";
+import type { Prisma, Role } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 
 import z from "zod";
 
-export const adminRouter = router({
-	layNguoiDungHienTai: publicProcedure
-		.input(z.object({ allowedRoles: z.custom<Role>().array().optional() }))
-		.query(async ({ ctx, input }) => {
-			if (!ctx.userId) return null;
-
-			const user = await ctx.prisma.taiKhoan.findUnique({ where: { MaTaiKhoan: ctx.userId } });
-			if (!user) return null;
-
-			if (!input.allowedRoles) return user;
-			if (input.allowedRoles.includes(user.Role)) return user;
-
-			return null;
-		}),
-
-	layLoaiKH: adminProcedure.query(async ({ ctx }) => {
-		return ctx.prisma.loaiKhachHang.findMany();
-	}),
-
-	actionLoaiKH: adminProcedure
+export const adminRouter = createTRPCRouter({
+	LoaiKHActions: adminProcedure
 		.input(
 			z.discriminatedUnion("type", [
 				z.object({
@@ -48,7 +30,7 @@ export const adminRouter = router({
 		.mutation(async ({ ctx, input }) => {
 			switch (input.type) {
 				case "Add": {
-					const existTenLoaiKH = await ctx.prisma.loaiKhachHang.count({
+					const existTenLoaiKH = await ctx.db.loaiKhachHang.count({
 						where: { TenLoaiTV: input.TenLoaiTV },
 					});
 
@@ -56,14 +38,14 @@ export const adminRouter = router({
 						throw new TRPCError({ code: "BAD_REQUEST", message: "Tên loại khách hàng đã tồn tại" });
 					}
 
-					await ctx.prisma.loaiKhachHang.create({ data: { TenLoaiTV: input.TenLoaiTV } });
+					await ctx.db.loaiKhachHang.create({ data: { TenLoaiTV: input.TenLoaiTV } });
 					break;
 				}
 
 				case "Edit": {
-					const [existTenLoaiKH, currentLoaiKH] = await ctx.prisma.$transaction([
-						ctx.prisma.loaiKhachHang.count({ where: { TenLoaiTV: input.TenLoaiTV } }),
-						ctx.prisma.loaiKhachHang.count({ where: { MaLKH: input.MaLoaiKH } }),
+					const [existTenLoaiKH, currentLoaiKH] = await ctx.db.$transaction([
+						ctx.db.loaiKhachHang.count({ where: { TenLoaiTV: input.TenLoaiTV } }),
+						ctx.db.loaiKhachHang.count({ where: { MaLKH: input.MaLoaiKH } }),
 					]);
 
 					if (!currentLoaiKH) {
@@ -74,7 +56,7 @@ export const adminRouter = router({
 						throw new TRPCError({ code: "BAD_REQUEST", message: "Tên loại khách hàng đã tồn tại" });
 					}
 
-					await ctx.prisma.loaiKhachHang.update({
+					await ctx.db.loaiKhachHang.update({
 						where: { MaLKH: input.MaLoaiKH },
 						data: { TenLoaiTV: input.TenLoaiTV },
 					});
@@ -83,7 +65,7 @@ export const adminRouter = router({
 				}
 
 				case "Delete": {
-					const currentLoaiKH = await ctx.prisma.loaiKhachHang.findUnique({
+					const currentLoaiKH = await ctx.db.loaiKhachHang.findUnique({
 						where: { MaLKH: input.MaLoaiKH },
 						select: { _count: { select: { KhachHang: true } }, TenLoaiTV: true },
 					});
@@ -99,13 +81,13 @@ export const adminRouter = router({
 						});
 					}
 
-					await ctx.prisma.loaiKhachHang.delete({ where: { MaLKH: input.MaLoaiKH } });
+					await ctx.db.loaiKhachHang.delete({ where: { MaLKH: input.MaLoaiKH } });
 					break;
 				}
 			}
 		}),
 
-	capNhatNguoiDung: adminProcedure
+	updateUser: adminProcedure
 		.input(
 			z.object({
 				maTaiKhoan: z.string(),
@@ -115,29 +97,23 @@ export const adminRouter = router({
 						role: z.custom<Role>().optional(),
 						maLKH: z.string().optional(),
 					}),
-					z.object({
-						type: z.literal("Delete"),
-					}),
-					z.object({
-						type: z.literal("Ban"),
-					}),
-					z.object({
-						type: z.literal("Unban"),
-					}),
+					z.object({ type: z.literal("Delete") }),
+					z.object({ type: z.literal("Ban") }),
+					z.object({ type: z.literal("Unban") }),
 				]),
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
 			switch (input.data.type) {
 				case "Update": {
-					const currentUser = await ctx.prisma.taiKhoan.findFirst({
+					const currentUser = await ctx.db.taiKhoan.findFirst({
 						where: { MaTaiKhoan: input.maTaiKhoan },
 					});
 
 					if (!currentUser)
 						throw new TRPCError({ code: "UNPROCESSABLE_CONTENT", message: "Tài khoản không tồn tại!" });
 
-					await ctx.prisma.taiKhoan.update({
+					await ctx.db.taiKhoan.update({
 						where: { MaTaiKhoan: input.maTaiKhoan },
 						data: { Role: input.data.role, KhachHang: { update: { MaLKH: input.data.maLKH } } },
 					});
@@ -145,7 +121,7 @@ export const adminRouter = router({
 					break;
 				}
 				case "Delete": {
-					const currentUser = await ctx.prisma.taiKhoan.findFirst({
+					const currentUser = await ctx.db.taiKhoan.findFirst({
 						where: { MaTaiKhoan: input.maTaiKhoan },
 					});
 
@@ -158,7 +134,7 @@ export const adminRouter = router({
 							message: `Không thể xóa tài khoản với chức vụ "Nhân Viên" hoặc "Quản trị viên", vui lòng kiểm tra lại, hoặc cập nhật chức vụ người dùng và thử lại!`,
 						});
 
-					await ctx.prisma.taiKhoan.delete({ where: { MaTaiKhoan: input.maTaiKhoan } });
+					await ctx.db.taiKhoan.delete({ where: { MaTaiKhoan: input.maTaiKhoan } });
 					await clerkClient.users.deleteUser(input.maTaiKhoan);
 
 					break;
@@ -166,14 +142,17 @@ export const adminRouter = router({
 
 				case "Ban":
 				case "Unban": {
-					const currentUser = await ctx.prisma.taiKhoan.findFirst({
+					const currentUser = await ctx.db.taiKhoan.findFirst({
 						where: { MaTaiKhoan: input.maTaiKhoan },
 					});
 
 					if (!currentUser)
 						throw new TRPCError({ code: "UNPROCESSABLE_CONTENT", message: "Tài khoản không tồn tại!" });
 
-					if (currentUser.Role === "NhanVien" || currentUser.Role === "QuanTriVien")
+					if (
+						(currentUser.Role === "NhanVien" || currentUser.Role === "QuanTriVien") &&
+						input.data.type === "Ban"
+					)
 						throw new TRPCError({
 							code: "BAD_REQUEST",
 							message: `Không thể cấm tài khoản với chức vụ "Nhân Viên" hoặc "Quản trị viên", vui lòng kiểm tra lại, hoặc cập nhật chức vụ người dùng và thử lại!`,
@@ -193,7 +172,7 @@ export const adminRouter = router({
 					);
 
 					if (res.ok) {
-						await ctx.prisma.taiKhoan.update({
+						await ctx.db.taiKhoan.update({
 							where: { MaTaiKhoan: input.maTaiKhoan },
 							data: { Banned: input.data.type === "Ban" },
 						});
@@ -204,7 +183,7 @@ export const adminRouter = router({
 			}
 		}),
 
-	layTongThongTinNguoiDung: adminProcedure
+	getUsers: adminProcedure
 		.input(
 			z.object({
 				page: z.number(),
@@ -224,6 +203,8 @@ export const adminRouter = router({
 		.query(async ({ ctx, input }) => {
 			const nullPhoneNumbers = ["Không Có".toLowerCase(), "null", "undefined"];
 
+			const trimedValue = (input.search?.query.value ?? "").trim();
+
 			const search: Prisma.TaiKhoanWhereInput = {
 				AND: [
 					input.search && input.search.roles.length > 0
@@ -236,45 +217,27 @@ export const adminRouter = router({
 								OR: input.search.type.map((type) => ({ KhachHang: { MaLKH: type } })),
 						  }
 						: {},
-					input.search && input.search.query.value.trim().length > 0
+					input.search && trimedValue.length > 0
 						? {
 								...(input.search.query.queryType === "Search-ID"
-									? {
-											MaTaiKhoan: {
-												contains: input.search.query.value.trim(),
-												mode: "insensitive",
-											},
-									  }
+									? { MaTaiKhoan: { contains: trimedValue, mode: "insensitive" } }
 									: input.search.query.queryType === "Search-Email"
-									? {
-											Email: {
-												contains: input.search.query.value.trim(),
-												mode: "insensitive",
-											},
-									  }
+									? { Email: { contains: trimedValue, mode: "insensitive" } }
 									: input.search.query.queryType === "Search-Name"
-									? {
-											TenTaiKhoan: {
-												contains: input.search.query.value.trim(),
-												mode: "insensitive",
-											},
-									  }
+									? { TenTaiKhoan: { contains: trimedValue, mode: "insensitive" } }
 									: {
-											SDT: nullPhoneNumbers.includes(input.search.query.value.trim())
+											SDT: nullPhoneNumbers.includes(trimedValue)
 												? null
-												: {
-														contains: input.search.query.value.trim(),
-														mode: "insensitive",
-												  },
+												: { contains: trimedValue, mode: "insensitive" },
 									  }),
 						  }
 						: {},
 				],
 			};
 
-			const [userCount, userData] = await ctx.prisma.$transaction([
-				ctx.prisma.taiKhoan.count({ where: search }),
-				ctx.prisma.taiKhoan.findMany({
+			const [userCount, userData] = await ctx.db.$transaction([
+				ctx.db.taiKhoan.count({ where: search }),
+				ctx.db.taiKhoan.findMany({
 					where: search,
 					include: { KhachHang: { include: { LoaiKhachHang: true } } },
 					take: input.perPage,
@@ -292,7 +255,7 @@ export const adminRouter = router({
 			return { data, count: userCount };
 		}),
 
-	layThongTinSanPham: adminProcedure
+	getProductInfo: adminProcedure
 		.input(
 			z.object({
 				page: z.number(),
@@ -312,9 +275,9 @@ export const adminRouter = router({
 				AND: [],
 			};
 
-			const [productCount, productsData] = await ctx.prisma.$transaction([
-				ctx.prisma.sanPhamMau.count({ where: search }),
-				ctx.prisma.sanPhamMau.findMany({
+			const [productCount, productsData] = await ctx.db.$transaction([
+				ctx.db.sanPhamMau.count({ where: search }),
+				ctx.db.sanPhamMau.findMany({
 					where: search,
 					include: { SanPhamBienThe: true, ThongSoKyThuat: true, HSX: true },
 					take: input.perPage,

@@ -1,6 +1,6 @@
 "use client";
 
-import { RouterOutputs } from "@/utils/trpc/shared";
+import type { RouterOutputs } from "@/utils/trpc/shared";
 
 import { Card, CardBody, Image } from "@nextui-org/react";
 

@@ -1,16 +1,16 @@
 "use client";
 
-import { RouterOutput } from "@/server/trpc/trpc";
+import type { RouterOutputs } from "@/utils/trpc/shared";
 
 import { Button, Image } from "@nextui-org/react";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 
-type PropsParams = { images: RouterOutput["sanPham"]["getSanPham"]["HinhAnh"] };
+type PropsParams = { images: RouterOutputs["sanPham"]["getSanPham"]["HinhAnh"] };
 
 export const PhoneImageShowcase = ({ images }: PropsParams) => {
-	const [currentImage, setImage] = useState(images[0]);
+	const [currentImage, setImage] = useState(images[0]!);
 
 	return (
 		<section className="flex flex-col overflow-hidden rounded-lg">
