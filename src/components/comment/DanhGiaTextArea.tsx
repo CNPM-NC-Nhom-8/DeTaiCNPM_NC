@@ -1,47 +1,47 @@
 "use client";
 
 import { api } from "@/utils/trpc/react";
+import type { RouterOutputs } from "@/utils/trpc/shared";
 
-import type { User as ClerkUser } from "@clerk/clerk-sdk-node";
 import { Button, Input, Textarea, User } from "@nextui-org/react";
 
 import { SendHorizontal } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-type ParamsType = { maSPM: string; maTraLoi?: string; user?: ClerkUser | null; refetch: () => Promise<unknown> };
+type ParamsType = {
+	maSPM: string;
+	maTraLoi?: string;
+	user: RouterOutputs["common"]["getCurrentUser"];
+	refetch: () => Promise<unknown>;
+};
 
 export const DanhGiaTextArea = ({ maSPM, maTraLoi, user, refetch }: ParamsType) => {
 	const [noiDung, setNoiDung] = useState("");
-
-	const [tenKhachHang, setTenKH] = useState(
-		user ? user.username ?? (user.lastName + " " + user.firstName).trim() : "",
-	);
+	const [tenKhachHang, setTenKH] = useState(user ? user.TenTaiKhoan ?? (user.Ho + " " + user.Ten).trim() : "");
 
 	const danhGia = api.danhGia.danhGiaBanTin.useMutation({
 		onSuccess: async () => {
 			setNoiDung("");
-			setTenKH(user ? user.username ?? (user.lastName + " " + user.firstName).trim() : "");
+			setTenKH(user ? user.TenTaiKhoan ?? (user.Ho + " " + user.Ten).trim() : "");
 
 			await refetch();
 		},
-		onError: ({ message }) => {
-			toast.error("Lỗi: " + message);
-		},
+		onError: ({ message }) => toast.error("Lỗi: " + message),
 	});
 
 	return (
 		<div className="flex flex-col gap-2">
 			{!user && (
 				<Input
-					isInvalid={danhGia.isError}
-					label="Tên"
-					placeholder="Nhập tên của bạn"
 					variant="bordered"
+					label="Tên"
 					labelPlacement="outside"
-					color={danhGia.isError ? "danger" : "primary"}
 					value={tenKhachHang}
 					onValueChange={setTenKH}
+					isInvalid={danhGia.isError}
+					placeholder="Nhập tên của bạn"
+					color={danhGia.isError ? "danger" : "primary"}
 				/>
 			)}
 
@@ -51,19 +51,28 @@ export const DanhGiaTextArea = ({ maSPM, maTraLoi, user, refetch }: ParamsType) 
 				variant="bordered"
 				labelPlacement="outside"
 				color={danhGia.isError ? "danger" : "primary"}
+				classNames={{ helperWrapper: "right-0" }}
 				placeholder="Viết cảm nhận của bạn về sản phẩm này"
 				errorMessage={danhGia.isError ? danhGia.error.message : undefined}
+				description={<span>{noiDung.length} ký tự</span>}
 				value={noiDung}
 				onValueChange={setNoiDung}
 				onKeyDown={(e) => {
 					if (e.ctrlKey && e.key === "Enter") {
-						danhGia.mutate({ maSPM, noiDung, maKhachHang: user?.id, maTraLoi, soSao: 5, tenKhachHang });
+						danhGia.mutate({
+							maSPM,
+							noiDung,
+							maKhachHang: user?.MaTaiKhoan,
+							maTraLoi,
+							soSao: 5,
+							tenKhachHang,
+						});
 					}
 				}}
 			/>
 
 			<div className="flex w-full items-center justify-between gap-4">
-				{user && <User name={user.username} avatarProps={{ src: user.imageUrl }} />}
+				{user && <User name={user.TenTaiKhoan} avatarProps={{ src: user.AnhDaiDien }} />}
 
 				<Button
 					isIconOnly
@@ -71,7 +80,14 @@ export const DanhGiaTextArea = ({ maSPM, maTraLoi, user, refetch }: ParamsType) 
 					endContent={danhGia.isLoading ? undefined : <SendHorizontal size={20} />}
 					color="primary"
 					onClick={() => {
-						danhGia.mutate({ maSPM, noiDung, maKhachHang: user?.id, maTraLoi, soSao: 5, tenKhachHang });
+						danhGia.mutate({
+							maSPM,
+							noiDung,
+							maKhachHang: user?.MaTaiKhoan,
+							maTraLoi,
+							soSao: 5,
+							tenKhachHang,
+						});
 					}}
 				/>
 			</div>

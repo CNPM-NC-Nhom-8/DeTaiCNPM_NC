@@ -4,6 +4,7 @@ import { ObjectKeys, cn, dayjs } from "@/utils/common";
 import { api } from "@/utils/trpc/react";
 import type { RouterInputs, RouterOutputs } from "@/utils/trpc/shared";
 
+import { TablePagination } from "../Pagination";
 import { LoaiKHActions } from "./LoaiKHActions";
 import { UserActions } from "./UserActions";
 
@@ -15,7 +16,6 @@ import {
 	DropdownMenu,
 	DropdownTrigger,
 	Input,
-	Pagination,
 	Select,
 	SelectItem,
 	type Selection,
@@ -27,11 +27,12 @@ import {
 	TableColumn,
 	TableHeader,
 	TableRow,
+	Tooltip,
 	User,
 } from "@nextui-org/react";
 import type { Role } from "@prisma/client";
 
-import { ChevronDownIcon, RotateCcw, SearchIcon } from "lucide-react";
+import { ChevronDown, ChevronDownIcon, RotateCcw, SearchIcon } from "lucide-react";
 import { type ChangeEvent, useCallback, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
@@ -43,7 +44,7 @@ const allColumns: { name: string; uid: keyof UserType | "Actions"; sortable?: bo
 	{ name: "Số DT", uid: "SDT", sortable: true },
 	{ name: "Trạng thái", uid: "Banned", sortable: true },
 	{ name: "Chức Vụ", uid: "Role", sortable: true },
-	{ name: "Loại Thành Viên", uid: "TenLoaiTV", sortable: true },
+	{ name: "Loại Khách Hàng", uid: "TenLoaiTV", sortable: true },
 	{ name: "Ngày Tham Gia", uid: "NgayTaoTK", sortable: true },
 	{ name: "Hành Động", uid: "Actions" },
 ];
@@ -63,7 +64,7 @@ const INITIAL_VISIBLE_COLUMNS: (typeof allColumns)[number]["uid"][] = [
 ];
 
 const searchType: Array<{
-	key: NonNullable<RouterInputs["admin"]["getUsers"]["search"]>["query"]["queryType"];
+	key: NonNullable<RouterInputs["admin"]["getUsers"]["query"]>["type"];
 	value: string;
 }> = [
 	{ key: "Search-ID", value: "Mã ID" },
@@ -86,16 +87,16 @@ export const UserTable = ({
 	const [page, setPage] = useState(1);
 	const [rowsPerPage, setRowsPerPage] = useState<(typeof perPage)[number]>(6);
 
-	const [filterValue, setFilterValue] = useState<{
-		searchType: (typeof searchType)[number]["key"];
-		searchValue: string;
-		filterRole: Role[];
-		filterType: string[];
+	const [queryData, setQueryData] = useState<{
+		type: (typeof searchType)[number]["key"];
+		value: string;
+		selectedRoles: Role[];
+		selectedLoaiKH: string[];
 	}>({
-		searchType: "Search-Name",
-		searchValue: "",
-		filterRole: [],
-		filterType: [],
+		type: "Search-Name",
+		value: "",
+		selectedRoles: [],
+		selectedLoaiKH: [],
 	});
 
 	const {
@@ -106,10 +107,10 @@ export const UserTable = ({
 		{
 			page,
 			perPage: rowsPerPage,
-			search: {
-				query: { queryType: filterValue.searchType, value: filterValue.searchValue },
-				roles: filterValue.filterRole,
-				type: filterValue.filterType,
+			query: {
+				select: { loaiKH: queryData.selectedLoaiKH, roles: queryData.selectedRoles },
+				type: queryData.type,
+				value: queryData.value,
 			},
 		},
 		{
@@ -128,9 +129,7 @@ export const UserTable = ({
 		initialData: initialLoaiKH,
 		refetchOnReconnect: false,
 		refetchOnWindowFocus: false,
-		onError: ({ message }) => {
-			toast.error("Lỗi: " + message);
-		},
+		onError: ({ message }) => toast.error("Lỗi: " + message),
 	});
 
 	const [visibleColumns, setVisibleColumns] = useState<Selection>(new Set(INITIAL_VISIBLE_COLUMNS));
@@ -144,7 +143,7 @@ export const UserTable = ({
 	});
 
 	const hasSearchFilter =
-		Boolean(filterValue.searchValue) || Boolean(filterValue.filterRole) || Boolean(filterValue.filterType);
+		Boolean(queryData.value) || Boolean(queryData.selectedRoles) || Boolean(queryData.selectedLoaiKH);
 
 	const headerColumns = useMemo(() => {
 		if (visibleColumns === "all") return allColumns;
@@ -152,8 +151,9 @@ export const UserTable = ({
 		return allColumns.filter((column) => Array.from(visibleColumns).includes(column.uid));
 	}, [visibleColumns]);
 
-	const pages = Math.ceil(users.count / rowsPerPage);
 	const sortedItems = useMemo(() => {
+		if (isRefetching) return [];
+
 		return [...users.data].sort((a, b) => {
 			const first = a[sortDescriptor.column as keyof UserType];
 			const second = b[sortDescriptor.column as keyof UserType];
@@ -166,119 +166,92 @@ export const UserTable = ({
 
 			return sortDescriptor.direction === "descending" ? -cmp : cmp;
 		});
-	}, [sortDescriptor, users.data]);
+	}, [sortDescriptor, users.data, isRefetching]);
 
 	const onRowsPerPageChange = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
 		setRowsPerPage(Number(e.target.value.slice("per-page-".length)) as typeof rowsPerPage);
 		setPage(1);
 	}, []);
 
-	const onSearchChange = useCallback((value?: string) => {
-		if (value) {
-			setFilterValue((prev) => ({ ...prev, searchValue: value }));
+	const onQueryChange = useCallback((key: keyof typeof queryData, value?: string | unknown[]) => {
+		if ((typeof value === "string" && value) || (Array.isArray(value) && value.length > 0)) {
+			setQueryData((prev) => ({ ...prev, [key]: value }));
 			setPage(1);
 		} else {
-			setFilterValue((prev) => ({ ...prev, searchValue: "" }));
-		}
-	}, []);
+			setQueryData((prev) => {
+				if (typeof prev[key] === "string") return { ...prev, [key]: "" };
+				if (Array.isArray(prev[key])) return { ...prev, [key]: [] };
 
-	const onClear = useCallback(() => {
-		setFilterValue((prev) => ({ ...prev, searchValue: "", filterRole: [], filterType: [] }));
-		setPage(1);
+				return prev;
+			});
+		}
 	}, []);
 
 	const topContent = useMemo(() => {
 		return (
 			<div className="flex flex-col gap-4">
-				<div className="flex items-end justify-between gap-3">
-					<div className="flex w-full gap-2">
-						<Select
-							defaultSelectedKeys={["Search-Name"]}
-							value={filterValue.searchType}
-							labelPlacement="outside"
-							classNames={{ base: "w-1/4" }}
-							items={searchType}
-							onChange={(e) => {
-								setFilterValue((prev) => ({
-									...prev,
-									searchType: e.target.value as typeof filterValue.searchType,
-								}));
-							}}
+				<div className="flex items-end justify-between gap-2">
+					<Select
+						size="lg"
+						defaultSelectedKeys={[queryData.type]}
+						value={queryData.type}
+						labelPlacement="outside"
+						classNames={{ base: "w-1/4", value: "text-small" }}
+						items={searchType}
+						onChange={(e) => onQueryChange("type", e.target.value)}
+					>
+						{(item) => <SelectItem key={item.key}>{item.value}</SelectItem>}
+					</Select>
+
+					<Input
+						size="sm"
+						radius="lg"
+						isClearable
+						className="w-full"
+						placeholder="Tìm kiếm..."
+						startContent={<SearchIcon />}
+						value={queryData.value}
+						onClear={() => onQueryChange("value")}
+						onValueChange={(value) => onQueryChange("value", value)}
+					/>
+
+					<Dropdown>
+						<DropdownTrigger className="hidden sm:flex">
+							<Button size="lg" className="text-small" endContent={<ChevronDownIcon />} variant="flat">
+								Cột
+							</Button>
+						</DropdownTrigger>
+						<DropdownMenu
+							disallowEmptySelection
+							aria-label="Table Columns"
+							closeOnSelect={false}
+							selectedKeys={visibleColumns}
+							selectionMode="multiple"
+							onSelectionChange={setVisibleColumns}
 						>
-							{(item) => <SelectItem key={item.key}>{item.value}</SelectItem>}
-						</Select>
-
-						<Input
-							isClearable
-							className="w-full"
-							placeholder="Tìm kiếm..."
-							startContent={<SearchIcon />}
-							value={filterValue.searchValue}
-							onClear={() => onClear()}
-							onValueChange={onSearchChange}
-						/>
-					</div>
-
-					<div className="flex gap-3">
-						<Dropdown>
-							<DropdownTrigger className="hidden sm:flex">
-								<Button endContent={<ChevronDownIcon className="text-small" />} variant="flat">
-									Cột
-								</Button>
-							</DropdownTrigger>
-							<DropdownMenu
-								disallowEmptySelection
-								aria-label="Table Columns"
-								closeOnSelect={false}
-								selectedKeys={visibleColumns}
-								selectionMode="multiple"
-								onSelectionChange={setVisibleColumns}
-							>
-								{allColumns.map((column) => (
-									<DropdownItem key={column.uid} className="capitalize">
-										{column.name}
-									</DropdownItem>
-								))}
-							</DropdownMenu>
-						</Dropdown>
-					</div>
+							{allColumns.map((column) => (
+								<DropdownItem key={column.uid} className="capitalize">
+									{column.name}
+								</DropdownItem>
+							))}
+						</DropdownMenu>
+					</Dropdown>
 				</div>
 
-				<div className="flex items-center justify-between">
-					<span className="text-small text-default-400">Tổng {users.count} người dùng</span>
-
-					<div>
-						<Select
-							size="sm"
-							labelPlacement="outside-left"
-							onChange={onRowsPerPageChange}
-							defaultSelectedKeys={["per-page-" + rowsPerPage]}
-							label="Cột từng trang"
-							items={perPage.map((num) => ({ key: "per-page-" + num, value: String(num) }))}
-							classNames={{
-								label: "flex items-center h-8 whitespace-nowrap text-sm",
-								base: "w-[180px]",
-							}}
-						>
-							{(item) => <SelectItem key={item.key}>{item.value}</SelectItem>}
-						</Select>
-					</div>
-				</div>
-
-				<div className="flex gap-2">
+				<div className="grid grid-cols-[minmax(0,1fr),minmax(0,1fr),max-content] gap-2">
 					<Select
 						size="sm"
+						radius="lg"
 						label="Phân loại chức vụ"
 						selectionMode="multiple"
-						defaultSelectedKeys={"all"}
 						className="flex-grow"
 						onChange={(e) => {
 							const data = e.target.value
+								.replaceAll("select-", "")
 								.split(",")
-								.filter((role) => role.length)
-								.map((role) => role.slice("select-".length) as Role);
+								.filter((role) => role.length);
 
-							setFilterValue((prev) => ({ ...prev, filterRole: data.length > 0 ? data : [] }));
+							onQueryChange("selectedRoles", data);
 						}}
 					>
 						{ObjectKeys(roles).map((role) => {
@@ -290,20 +263,20 @@ export const UserTable = ({
 						})}
 					</Select>
 
-					<div className="flex w-1/2 flex-shrink-0">
+					<div className="flex">
 						<Select
 							size="sm"
+							radius="lg"
 							label="Phân loại loại khách hàng"
-							defaultSelectedKeys={"all"}
 							selectionMode="multiple"
 							classNames={{ trigger: "rounded-r-none" }}
 							onChange={(e) => {
 								const data = e.target.value
+									.replaceAll("select-", "")
 									.split(",")
-									.filter((type) => type.length)
-									.map((type) => type.slice("select-".length));
+									.filter((type) => type.length);
 
-								setFilterValue((prev) => ({ ...prev, filterType: data.length > 0 ? data : [] }));
+								onQueryChange("selectedLoaiKH", data);
 							}}
 						>
 							{LoaiKH.map((type) => {
@@ -329,9 +302,7 @@ export const UserTable = ({
 								size={20}
 								className={cn(
 									`rotate-0 transition-transform duration-1000 ease-linear will-change-transform`,
-									{
-										"-rotate-[360deg]": isRefetching,
-									},
+									{ "-rotate-[360deg]": isRefetching },
 								)}
 							/>
 						}
@@ -343,9 +314,9 @@ export const UserTable = ({
 		);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
-		filterValue,
+		queryData,
 		visibleColumns,
-		onSearchChange,
+		onQueryChange,
 		onRowsPerPageChange,
 		users.count,
 		hasSearchFilter,
@@ -355,26 +326,51 @@ export const UserTable = ({
 
 	const bottomContent = useMemo(() => {
 		return (
-			<div className="flex items-center justify-between px-2 py-2">
-				<Pagination
-					isDisabled={isRefetching}
-					isCompact
-					showControls
-					showShadow
-					color="primary"
+			<div className="flex items-center justify-between">
+				<section className="flex items-center justify-center gap-2 whitespace-nowrap text-small text-default-400">
+					<span>Hiển thị</span>
+
+					<Select
+						size="sm"
+						onChange={onRowsPerPageChange}
+						defaultSelectedKeys={["per-page-" + rowsPerPage]}
+						items={perPage.map((num) => ({ key: "per-page-" + num, value: String(num) }))}
+						selectorIcon={<ChevronDown />}
+						classNames={{
+							label: "whitespace-nowrap",
+							base: "w-[70px]",
+							trigger: "h-max min-h-0",
+							popoverContent: "w-max",
+						}}
+					>
+						{(item) => (
+							<SelectItem key={item.key} className="px-1.5 py-1">
+								{item.value}
+							</SelectItem>
+						)}
+					</Select>
+
+					<span>trong tổng số {users.count} người dùng</span>
+				</section>
+
+				<TablePagination
+					data={users}
+					isRefetching={isRefetching}
 					page={page}
-					total={pages}
-					onChange={setPage}
+					rowsPerPage={rowsPerPage}
+					setPage={setPage}
 				/>
 			</div>
 		);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [page, pages, isRefetching, users.count]);
+	}, [page, isRefetching, users.count]);
 
 	const renderCell = useCallback(
 		(user: UserType, columnKey: (typeof allColumns)[number]["uid"]) => {
 			let cellValue = user[columnKey as keyof UserType];
-			if (cellValue instanceof Date) cellValue = dayjs(cellValue).format("DD/MM/YYYY - HH:mm:ss");
+
+			// * Note: Make typescript less mad, use product instead!
+			if (typeof cellValue === "object") cellValue = "";
 
 			switch (columnKey) {
 				case "TenTaiKhoan":
@@ -398,6 +394,7 @@ export const UserTable = ({
 							disabledKeys={["update-QuanTriVien"]}
 							defaultSelectedKeys={[["update", user.Role].join("-")]}
 							isDisabled={user.MaTaiKhoan === currentUserId || user.Banned}
+							classNames={{ popoverContent: "min-w-max" }}
 							items={ObjectKeys(roles).map((role) => ({
 								key: ["update", role].join("-"),
 								value: roles[role],
@@ -423,6 +420,7 @@ export const UserTable = ({
 							defaultSelectedKeys={[user.MaLKH]}
 							items={LoaiKH}
 							isDisabled={user.Banned}
+							classNames={{ popoverContent: "min-w-max" }}
 							onChange={(e) => {
 								capNhatNguoiDung.mutate({
 									maTaiKhoan: user.MaTaiKhoan,
@@ -434,16 +432,28 @@ export const UserTable = ({
 						</Select>
 					);
 
+				case "NgayTaoTK": {
+					const date = dayjs(user.NgayTaoTK);
+
+					return (
+						<Tooltip showArrow content={date.format("DD MMMM, YYYY, HH:mm")}>
+							<span>{date.fromNow()}</span>
+						</Tooltip>
+					);
+				}
+
 				case "Banned":
 					return (
-						<Chip
-							className="capitalize"
-							color={cn<"success" | "danger">({ success: !user.Banned, danger: user.Banned })}
-							size="sm"
-							variant="flat"
-						>
-							{user.Banned ? "Cấm hoạt động" : "Hoạt động"}
-						</Chip>
+						<div className="flex w-full items-center justify-center">
+							<Chip
+								className="capitalize"
+								color={cn<"success" | "danger">({ success: !user.Banned, danger: user.Banned })}
+								size="sm"
+								variant="flat"
+							>
+								{user.Banned ? "Cấm hoạt động" : "Hoạt động"}
+							</Chip>
+						</div>
 					);
 
 				case "Actions":
@@ -465,7 +475,6 @@ export const UserTable = ({
 
 	return (
 		<Table
-			isHeaderSticky
 			bottomContent={bottomContent}
 			bottomContentPlacement="outside"
 			sortDescriptor={sortDescriptor}
@@ -481,6 +490,7 @@ export const UserTable = ({
 						allowsSorting={column.sortable}
 						className={cn({
 							"text-right": column.uid === "Actions",
+							"text-center": column.uid === "Banned",
 						})}
 					>
 						{column.name}
@@ -491,7 +501,7 @@ export const UserTable = ({
 			<TableBody
 				isLoading={isRefetching}
 				loadingContent={<Spinner label="Đang tải..." />}
-				emptyContent={"Không tìm thấy người dùng nào"}
+				emptyContent={isRefetching ? undefined : "Không tìm thấy người dùng nào"}
 				items={sortedItems}
 			>
 				{(item) => (

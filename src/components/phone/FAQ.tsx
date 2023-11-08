@@ -4,7 +4,7 @@ import type { RouterOutputs } from "@/utils/trpc/shared";
 
 import { Accordion, AccordionItem, Card, CardHeader } from "@nextui-org/react";
 
-export const FAQ = ({ data }: { data: RouterOutputs["sanPham"]["getSanPham"]["FAQ"] }) => {
+export const FAQ = ({ data }: { data: RouterOutputs["product"]["getSanPham"]["FAQ"] }) => {
 	return (
 		<Card className="px-2">
 			<CardHeader className="items-center justify-center text-xl">Các câu hỏi thường gặp</CardHeader>

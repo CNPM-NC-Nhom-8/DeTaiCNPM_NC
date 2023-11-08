@@ -6,7 +6,7 @@ import { TRPCError } from "@trpc/server";
 
 import z from "zod";
 
-export const sanPhamRouter = createTRPCRouter({
+export const productRouter = createTRPCRouter({
 	getSanPham: publicProcedure
 		.input(
 			z.object({
@@ -33,7 +33,7 @@ export const sanPhamRouter = createTRPCRouter({
 				where: { TenSP: input.tenSP ? decodeURIComponent(input.tenSP) : undefined, MaSPM: input.maSPM },
 				include: {
 					HinhAnh: true,
-					SanPhamBienThe: true,
+					SanPhamBienThe: { orderBy: [{ Gia: "asc" }, { Mau: "desc" }] },
 					ThongSoKyThuat: true,
 					FAQ: true,
 				},
@@ -42,6 +42,7 @@ export const sanPhamRouter = createTRPCRouter({
 			if (!data) throw new TRPCError({ code: "NOT_FOUND" });
 			return { ...data, ThongSoKyThuat: exclude(data.ThongSoKyThuat!, ["MaSPM", "MaThongSo"]) };
 		}),
+
 	getSanPhamTuongTu: publicProcedure.input(z.object({ maHSX: z.string() })).query(async ({ ctx, input }) => {
 		return await ctx.db.hangSanXuat.findFirst({
 			where: { MaHSX: input.maHSX },
@@ -53,21 +54,21 @@ export const sanPhamRouter = createTRPCRouter({
 		if (!ctx.userId) return false;
 		return !!(await ctx.db.sanPhamYeuThich.count({ where: { MaKhachHang: ctx.userId, MaSPM: input.maSPM } }));
 	}),
-	yeuThich: authProcedure.input(z.object({ maSPM: z.string() })).mutation(async ({ ctx, input }) => {
-		const isFavorite = await ctx.db.sanPhamYeuThich.count({
-			where: { MaSPM: input.maSPM, MaKhachHang: ctx.userId },
-		});
 
-		// đã yêu thích => bỏ yêu thích
-		if (isFavorite) {
-			await ctx.db.sanPhamYeuThich.delete({
-				where: { MaSPM_MaKhachHang: { MaSPM: input.maSPM, MaKhachHang: ctx.userId } },
+	yeuThich: authProcedure
+		.input(z.object({ maSPM: z.string(), isFavored: z.boolean() }))
+		.mutation(async ({ ctx, input }) => {
+			// đã yêu thích => bỏ yêu thích
+			if (input.isFavored) {
+				await ctx.db.sanPhamYeuThich.delete({
+					where: { MaSPM_MaKhachHang: { MaSPM: input.maSPM, MaKhachHang: ctx.userId } },
+				});
+				return;
+			}
+
+			// Chưa Yêu thích => Yêu Thích
+			await ctx.db.sanPhamYeuThich.create({
+				data: { MaSPM: input.maSPM, MaKhachHang: ctx.userId },
 			});
-			return;
-		}
-		// Chưa Yêu thích => Yêu Thích
-		await ctx.db.sanPhamYeuThich.create({
-			data: { MaSPM: input.maSPM, MaKhachHang: ctx.userId },
-		});
-	}),
+		}),
 });

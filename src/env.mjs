@@ -7,6 +7,7 @@ export const env = createEnv({
 		DATABASE_URL: z.string().url(),
 		CLERK_SECRET_KEY: z.string().min(1),
 		CLERK_SIGNING_KEY: z.string().min(1),
+		POSTHOG_KEY: z.string().min(1),
 		NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
 	},
 	client: {

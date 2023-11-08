@@ -29,7 +29,7 @@ export const MainNavbar = () => {
 	const pathname = usePathname();
 	const { signOut } = useClerk();
 
-	const cart = api.cart.layGioHang.useQuery(undefined, { refetchOnReconnect: false, refetchOnWindowFocus: false });
+	const cart = api.cart.getCartItems.useQuery(undefined, { refetchOnReconnect: false, refetchOnWindowFocus: false });
 
 	const {
 		data: user,
@@ -52,6 +52,7 @@ export const MainNavbar = () => {
 			<NavbarContent justify="center">
 				<NavbarItem>
 					<Input
+						size="sm"
 						isClearable
 						type="text"
 						variant="bordered"

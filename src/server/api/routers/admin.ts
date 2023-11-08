@@ -9,7 +9,7 @@ import { TRPCError } from "@trpc/server";
 import z from "zod";
 
 export const adminRouter = createTRPCRouter({
-	LoaiKHActions: adminProcedure
+	loaiKHActions: adminProcedure
 		.input(
 			z.discriminatedUnion("type", [
 				z.object({
@@ -82,6 +82,84 @@ export const adminRouter = createTRPCRouter({
 					}
 
 					await ctx.db.loaiKhachHang.delete({ where: { MaLKH: input.MaLoaiKH } });
+					break;
+				}
+			}
+		}),
+
+	hangSXActions: adminProcedure
+		.input(
+			z.discriminatedUnion("type", [
+				z.object({
+					type: z.literal("Add"),
+					tenHangSX: z.string().min(1, "Tên hãng sản xuất phải dài hơn 1 ký tự"),
+				}),
+				z.object({
+					type: z.literal("Edit"),
+					maHangSX: z.string(),
+					tenHangSX: z.string().min(1, "Tên hãng sản xuất phải dài hơn 1 ký tự"),
+				}),
+				z.object({
+					type: z.literal("Delete"),
+					maHangSX: z.string(),
+				}),
+			]),
+		)
+		.mutation(async ({ ctx, input }) => {
+			switch (input.type) {
+				case "Add": {
+					const existTenHangSX = await ctx.db.hangSanXuat.count({
+						where: { TenHSX: input.tenHangSX },
+					});
+
+					if (!!existTenHangSX) {
+						throw new TRPCError({ code: "BAD_REQUEST", message: "Tên hãng sản xuất đã tồn tại" });
+					}
+
+					await ctx.db.hangSanXuat.create({ data: { TenHSX: input.tenHangSX } });
+					break;
+				}
+
+				case "Edit": {
+					const [existTenHangSX, currentHangSX] = await ctx.db.$transaction([
+						ctx.db.hangSanXuat.count({ where: { TenHSX: input.tenHangSX } }),
+						ctx.db.hangSanXuat.count({ where: { MaHSX: input.maHangSX } }),
+					]);
+
+					if (!currentHangSX) {
+						throw new TRPCError({ code: "BAD_REQUEST", message: "Hãng sản xuất không tồn tại" });
+					}
+
+					if (!!existTenHangSX) {
+						throw new TRPCError({ code: "BAD_REQUEST", message: "Tên hãng sản xuất đã tồn tại" });
+					}
+
+					await ctx.db.hangSanXuat.update({
+						where: { MaHSX: input.maHangSX },
+						data: { TenHSX: input.tenHangSX },
+					});
+
+					break;
+				}
+
+				case "Delete": {
+					const currentHangSX = await ctx.db.hangSanXuat.findUnique({
+						where: { MaHSX: input.maHangSX },
+						select: { _count: { select: { SanPhamMau: true } }, TenHSX: true },
+					});
+
+					if (!currentHangSX) {
+						throw new TRPCError({ code: "BAD_REQUEST", message: "Hãng sản xuất không tồn tại" });
+					}
+
+					if (currentHangSX._count.SanPhamMau > 0) {
+						throw new TRPCError({
+							code: "CONFLICT",
+							message: `Vẫn còn ${currentHangSX._count.SanPhamMau} sản phẩm với hãng sản xuất "${currentHangSX.TenHSX}", vui lòng chuyển những sản phẩm mẫu đó sang 1 hãng sản xuất khác trước khi xóa!`,
+						});
+					}
+
+					await ctx.db.hangSanXuat.delete({ where: { MaHSX: input.maHangSX } });
 					break;
 				}
 			}
@@ -188,42 +266,38 @@ export const adminRouter = createTRPCRouter({
 			z.object({
 				page: z.number(),
 				perPage: z.number(),
-				search: z
-					.object({
-						query: z.object({
-							queryType: z.enum(["Search-ID", "Search-Name", "Search-Email", "Search-SDT"]),
-							value: z.string(),
+				query: z.optional(
+					z.object({
+						value: z.string(),
+						type: z.enum(["Search-ID", "Search-Name", "Search-Email", "Search-SDT"]),
+
+						select: z.object({
+							roles: z.custom<Role>().array(),
+							loaiKH: z.string().array(),
 						}),
-						roles: z.custom<Role>().array(),
-						type: z.string().array(),
-					})
-					.optional(),
+					}),
+				),
 			}),
 		)
 		.query(async ({ ctx, input }) => {
 			const nullPhoneNumbers = ["Không Có".toLowerCase(), "null", "undefined"];
-
-			const trimedValue = (input.search?.query.value ?? "").trim();
+			const trimedValue = (input.query?.value ?? "").trim();
 
 			const search: Prisma.TaiKhoanWhereInput = {
 				AND: [
-					input.search && input.search.roles.length > 0
-						? {
-								OR: input.search.roles.map((role) => ({ Role: role })),
-						  }
+					input.query && input.query.select.roles.length > 0
+						? { OR: input.query.select.roles.map((role) => ({ Role: role })) }
 						: {},
-					input.search && input.search.type.length > 0
-						? {
-								OR: input.search.type.map((type) => ({ KhachHang: { MaLKH: type } })),
-						  }
+					input.query && input.query.select.loaiKH.length > 0
+						? { OR: input.query.select.loaiKH.map((type) => ({ KhachHang: { MaLKH: type } })) }
 						: {},
-					input.search && trimedValue.length > 0
+					input.query && trimedValue.length > 0
 						? {
-								...(input.search.query.queryType === "Search-ID"
+								...(input.query.type === "Search-ID"
 									? { MaTaiKhoan: { contains: trimedValue, mode: "insensitive" } }
-									: input.search.query.queryType === "Search-Email"
+									: input.query.type === "Search-Email"
 									? { Email: { contains: trimedValue, mode: "insensitive" } }
-									: input.search.query.queryType === "Search-Name"
+									: input.query.type === "Search-Name"
 									? { TenTaiKhoan: { contains: trimedValue, mode: "insensitive" } }
 									: {
 											SDT: nullPhoneNumbers.includes(trimedValue)
@@ -255,24 +329,41 @@ export const adminRouter = createTRPCRouter({
 			return { data, count: userCount };
 		}),
 
-	getProductInfo: adminProcedure
+	getProducts: adminProcedure
 		.input(
 			z.object({
 				page: z.number(),
 				perPage: z.number(),
-				search: z
-					.object({
-						query: z.object({
-							queryType: z.enum(["Search-ID", "Search-Name", "Search-Email", "Search-SDT"]),
-							value: z.string(),
+				query: z.optional(
+					z.object({
+						type: z.enum(["Search-ID", "Search-Name"]),
+						value: z.string(),
+
+						select: z.object({
+							hangSX: z.string().array(),
 						}),
-					})
-					.optional(),
+					}),
+				),
 			}),
 		)
 		.query(async ({ ctx, input }) => {
-			const search: Prisma.TaiKhoanWhereInput = {
-				AND: [],
+			const trimedValue = (input.query?.value ?? "").trim();
+
+			const search: Prisma.SanPhamMauWhereInput = {
+				AND: [
+					input.query && input.query.select.hangSX.length > 0
+						? { OR: input.query.select.hangSX.map((maHSX) => ({ MaHSX: maHSX })) }
+						: {},
+					input.query && trimedValue.length > 0
+						? {
+								...(input.query.type === "Search-ID"
+									? { MaSPM: { contains: trimedValue, mode: "insensitive" } }
+									: input.query.type === "Search-Name"
+									? { TenSP: { contains: trimedValue, mode: "insensitive" } }
+									: {}),
+						  }
+						: {},
+				],
 			};
 
 			const [productCount, productsData] = await ctx.db.$transaction([
@@ -286,9 +377,44 @@ export const adminRouter = createTRPCRouter({
 			]);
 
 			const data = productsData.map((_product) => {
-				return _product;
+				const { SanPhamBienThe, HSX, ThongSoKyThuat, ...product } = _product;
+
+				return { ...product, SanPhamBienThe, ...HSX, ThongSoKyThuat };
 			});
 
 			return { data, count: productCount };
+		}),
+
+	updateProduct: adminProcedure
+		.input(
+			z.object({
+				maSPM: z.string(),
+				data: z.discriminatedUnion("type", [
+					z.object({
+						type: z.literal("Update"),
+						MaHangSX: z.string().optional(),
+					}),
+					z.object({ type: z.literal("Delete") }),
+				]),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			switch (input.data.type) {
+				case "Update": {
+					const currentProduct = await ctx.db.sanPhamMau.findFirst({
+						where: { MaSPM: input.maSPM },
+					});
+
+					if (!currentProduct)
+						throw new TRPCError({ code: "UNPROCESSABLE_CONTENT", message: "Sản phẩm không tồn tại!" });
+
+					await ctx.db.sanPhamMau.update({
+						where: { MaSPM: input.maSPM },
+						data: { MaHSX: input.data.MaHangSX },
+					});
+
+					break;
+				}
+			}
 		}),
 });

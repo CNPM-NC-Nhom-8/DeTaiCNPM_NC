@@ -11,6 +11,10 @@ const dayjs = ogDayjs;
 dayjs.locale("vi");
 dayjs.extend(relativeTime);
 
+export { dayjs };
+
+export const moneyFormat = new Intl.NumberFormat("de-DE", { style: "currency", currency: "vnd" });
+
 export const ObjectKeys = <Obj extends Record<string, unknown>>(obj: Obj): (keyof Obj)[] => {
 	return Object.keys(obj) as (keyof Obj)[];
 };
@@ -22,8 +26,6 @@ export function cn<T extends string>(...inputs: ClassValue[]) {
 export const exclude = <T extends Record<string, unknown>, K extends keyof T>(obj: T, keys: K[]): Omit<T, K> => {
 	return Object.fromEntries(Object.entries(obj).filter(([key]) => !keys.includes(key as K))) as T;
 };
-
-export { dayjs };
 
 export const ThongSoKeyVietnamese = (key: keyof Omit<ThongSoKyThuat, "MaSPM" | "MaThongSo">) => {
 	switch (key) {

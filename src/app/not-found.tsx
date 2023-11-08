@@ -1,7 +1,6 @@
 "use client";
 
 import type { Metadata } from "next";
-import NextLink from "next/link";
 
 import { Button, ButtonGroup, Link } from "@nextui-org/react";
 
@@ -23,11 +22,11 @@ export default function NotFoundPage() {
 
 				<p className="text-center text-lg">
 					Trang mà bạn đang tìm không tồn tại. <br /> Vui lòng quay lại trang chính hoặc liên hệ chúng tôi nếu
-					bạn nghĩ đây là 1 lỗi kỹ thuật
+					bạn nghĩ đây là 1 lỗi kỹ thuật!
 				</p>
 
 				<ButtonGroup>
-					<Button as={NextLink} href="/" color="primary">
+					<Button as={Link} href="/" color="primary">
 						Quay lại trang chủ
 					</Button>
 

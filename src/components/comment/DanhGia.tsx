@@ -6,32 +6,36 @@ import type { RouterOutputs } from "@/utils/trpc/shared";
 
 import { DanhGiaTextArea } from "./DanhGiaTextArea";
 
-import type { User } from "@clerk/clerk-sdk-node";
 import { Avatar, Button, Card, CardBody, Spacer, Spinner } from "@nextui-org/react";
 
 import { Flag, MessagesSquare, Reply, X } from "lucide-react";
-import { Fragment, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
 type ParamsType = {
-	SanPhamMau: RouterOutputs["sanPham"]["getSanPham"];
-	userJSON: string | null;
+	sanPham: RouterOutputs["product"]["getSanPham"];
+	user: RouterOutputs["common"]["getCurrentUser"];
 };
 
-export const DanhGiaSanPham = ({ SanPhamMau, userJSON }: ParamsType) => {
-	const user = userJSON ? (JSON.parse(userJSON) as User) : null;
-
-	const [pageNum, setPage] = useState(1);
+export const DanhGiaSanPham = ({ sanPham, user }: ParamsType) => {
+	const [limit, setLimit] = useState(5);
 
 	const {
 		data,
 		isLoading,
 		isSuccess,
+		hasNextPage,
 		refetch: refetchDanhGia,
-	} = api.danhGia.getDanhGia.useQuery(
-		{ maSPM: SanPhamMau.MaSPM, pageNum: pageNum },
-		{ refetchOnReconnect: false, refetchOnWindowFocus: false },
+	} = api.danhGia.getDanhGia.useInfiniteQuery(
+		{ maSPM: sanPham.MaSPM, limit: limit },
+		{ refetchOnReconnect: false, refetchOnWindowFocus: false, getNextPageParam: (lastPage) => lastPage.nextCursor },
 	);
+
+	const getDanhGiaFromData = useMemo(() => {
+		if (!isSuccess) return [];
+
+		return data.pages.map(({ danhGia }) => danhGia).flat();
+	}, [data, isSuccess]);
 
 	if (isLoading) {
 		return (
@@ -41,7 +45,8 @@ export const DanhGiaSanPham = ({ SanPhamMau, userJSON }: ParamsType) => {
 		);
 	}
 
-	if (isSuccess && data.length === 0)
+	if (!isSuccess) return;
+	if (getDanhGiaFromData.length === 0)
 		return (
 			<div className="flex flex-col gap-4 pt-4">
 				<h3 className="text-2xl font-bold">Đánh Giá</h3>
@@ -52,55 +57,46 @@ export const DanhGiaSanPham = ({ SanPhamMau, userJSON }: ParamsType) => {
 					</div>
 				</div>
 
-				<DanhGiaTextArea maSPM={SanPhamMau.MaSPM} user={user} refetch={async () => await refetchDanhGia()} />
+				<DanhGiaTextArea maSPM={sanPham.MaSPM} user={user} refetch={async () => await refetchDanhGia()} />
 			</div>
 		);
 
 	return (
 		<div className="flex flex-col gap-4 pt-4">
-			<DanhGiaTextArea
-				maSPM={SanPhamMau.MaSPM}
-				user={user}
-				refetch={async () => {
-					await refetchDanhGia();
-				}}
-			/>
+			<DanhGiaTextArea maSPM={sanPham.MaSPM} user={user} refetch={async () => await refetchDanhGia()} />
 
 			<div className="flex flex-col gap-2">
-				{isSuccess &&
-					data.map((danhGia) => {
-						return (
-							<DanhGia
-								key={SanPhamMau.MaSPM}
-								danhGia={danhGia}
-								user={user}
-								isTraLoi={false}
-								refetch={async () => await refetchDanhGia()}
-							/>
-						);
-					})}
+				{getDanhGiaFromData.map((danhGia) => {
+					return (
+						<DanhGia
+							key={sanPham.MaSPM}
+							danhGia={danhGia}
+							user={user}
+							isTraLoi={false}
+							refetch={async () => await refetchDanhGia()}
+						/>
+					);
+				})}
 			</div>
+
+			{hasNextPage && <Button onPress={() => setLimit((prev) => prev + 5)}> Tải thêm </Button>}
 		</div>
 	);
 };
 
 type DanhGiaParams = {
-	danhGia: RouterOutputs["danhGia"]["getDanhGia"][number];
+	danhGia: RouterOutputs["danhGia"]["getDanhGia"]["danhGia"][number];
+	user: RouterOutputs["common"]["getCurrentUser"];
 	refetch: () => Promise<unknown>;
-	user: User | null;
 	isTraLoi: boolean;
 };
 
-const DanhGia = ({ danhGia, refetch, user: clerkUser, isTraLoi }: DanhGiaParams) => {
+const DanhGia = ({ danhGia, refetch, user, isTraLoi }: DanhGiaParams) => {
 	const [isClicked, setClicked] = useState(false);
 	const [isExpanded, setExpanded] = useState(false);
 
-	const trpcContext = api.useContext();
+	const apiUtils = api.useUtils();
 
-	const user = api.common.getCurrentUser.useQuery(undefined, {
-		refetchOnReconnect: false,
-		refetchOnWindowFocus: false,
-	});
 	const traLoi = api.danhGia.getTraLoi.useQuery(
 		{ maDanhGia: danhGia.MaDanhGia },
 		{ refetchOnReconnect: false, refetchOnWindowFocus: false },
@@ -111,24 +107,22 @@ const DanhGia = ({ danhGia, refetch, user: clerkUser, isTraLoi }: DanhGiaParams)
 			await Promise.allSettled([
 				refetch(),
 				traLoi.refetch(),
-				trpcContext.danhGia.getTraLoi.refetch({ maDanhGia: danhGia.MaTraLoi ?? danhGia.MaDanhGia }),
+				apiUtils.danhGia.getTraLoi.refetch({ maDanhGia: danhGia.MaTraLoi ?? danhGia.MaDanhGia }),
 			]);
 		},
-		onError: ({ message }) => {
-			toast.error("Lỗi: " + message);
-		},
+		onError: ({ message }) => toast.error("Lỗi: " + message),
 	});
 
 	return (
 		<Card isDisabled={xoaDanhGia.isLoading} as={isTraLoi ? Fragment : "div"}>
-			<CardBody as={"div"} className="relative isolate">
-				{user.isSuccess && (user.data?.Role === "NhanVien" || user.data?.Role === "QuanTriVien") && (
+			<CardBody as={"div"} className={cn("relative", { "p-0": isTraLoi })}>
+				{user && (user.Role === "NhanVien" || user.Role === "QuanTriVien") && (
 					<Button
 						size="sm"
 						isIconOnly
 						color="danger"
 						isLoading={xoaDanhGia.isLoading}
-						className="absolute right-2 top-2 z-20"
+						className={cn("absolute right-2 top-2 z-20", { "right-0": isTraLoi })}
 						startContent={xoaDanhGia.isLoading ? undefined : <X size={16} />}
 						onPress={() => xoaDanhGia.mutate({ maDanhGia: danhGia.MaDanhGia })}
 					/>
@@ -178,13 +172,13 @@ const DanhGia = ({ danhGia, refetch, user: clerkUser, isTraLoi }: DanhGiaParams)
 							<div>
 								<DanhGiaTextArea
 									maSPM={danhGia.MaSPM}
-									user={clerkUser}
+									user={user}
 									maTraLoi={danhGia.MaDanhGia}
 									refetch={async () => {
 										await Promise.allSettled([
 											refetch(),
 											traLoi.refetch(),
-											trpcContext.danhGia.getTraLoi.refetch({
+											apiUtils.danhGia.getTraLoi.refetch({
 												maDanhGia: danhGia.MaTraLoi ?? danhGia.MaDanhGia,
 											}),
 										]);
@@ -230,12 +224,12 @@ const DanhGia = ({ danhGia, refetch, user: clerkUser, isTraLoi }: DanhGiaParams)
 									<>
 										<Spacer y={2} />
 										<blockquote className="flex flex-col gap-4 border-l-2 border-default-500 pl-4">
-											{traLoi.data?.map((traLoi) => {
+											{traLoi.data.map((traLoi) => {
 												return (
 													<DanhGia
 														key={traLoi.MaDanhGia}
 														danhGia={traLoi}
-														user={clerkUser}
+														user={user}
 														isTraLoi={true}
 														refetch={async () => await refetch()}
 													/>

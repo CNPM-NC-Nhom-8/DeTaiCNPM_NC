@@ -109,7 +109,7 @@ model PhamViKhuyenMai {
     MaSPM       String?
     MaLKH       String?
 
-    KhuyenMai     KhuyenMai       @relation(fields: [MaKhuyenMai], references: [MaKhuyenMai])
+    KhuyenMai     KhuyenMai       @relation(fields: [MaKhuyenMai], references: [MaKhuyenMai], onDelete: Cascade, onUpdate: Cascade)
     SanPhamMau    SanPhamMau[]
     LoadThanhVien LoaiKhachHang[]
 }
@@ -131,7 +131,6 @@ model SanPhamMau {
     MoTa    String
     DacDiem String
     AnhBia  String
-    GiaGoc  Float
 
     HinhAnh        HinhAnh[] // 1 Sản phẩm có thể có nhiều hình ảnh
     DanhGia        DanhGia[] // 1 Sản phẩm có thể có nhiều đánh giá
@@ -141,8 +140,10 @@ model SanPhamMau {
     ThongSoKyThuat ThongSoKyThuat?
 
     // 1 sản phẩm chỉ có thể có 1 nhà sẩn xuất
-    HSX   HangSanXuat @relation(fields: [MaHSX], references: [MaHSX])
+    HSX   HangSanXuat @relation(fields: [MaHSX], references: [MaHSX], onDelete: Restrict, onUpdate: Restrict)
     MaHSX String
+
+    NgayThem DateTime @default(now()) @db.Timestamp(3)
 
     // Khuyen Mai
     PhamViKhuyenMai PhamViKhuyenMai[]
@@ -157,7 +158,7 @@ model FAQ {
     TraLoi String
 
     MaSPM      String
-    SanPhamMau SanPhamMau @relation(fields: [MaSPM], references: [MaSPM])
+    SanPhamMau SanPhamMau @relation(fields: [MaSPM], references: [MaSPM], onDelete: Cascade, onUpdate: Cascade)
 
     @@index([MaSPM])
 }
@@ -175,7 +176,7 @@ model ThongSoKyThuat {
     SIM        String
     Pin        String
 
-    SanPham SanPhamMau @relation(fields: [MaSPM], references: [MaSPM])
+    SanPham SanPhamMau @relation(fields: [MaSPM], references: [MaSPM], onDelete: Cascade, onUpdate: Cascade)
     MaSPM   String     @unique
 }
 
@@ -189,12 +190,12 @@ model DanhGia {
     TraLoiCho DanhGia?  @relation("TraLoiCho", fields: [MaTraLoi], references: [MaDanhGia], onDelete: Cascade, onUpdate: Cascade)
     TraLoiBoi DanhGia[] @relation("TraLoiCho")
 
-    SanPhamMau SanPhamMau @relation(fields: [MaSPM], references: [MaSPM])
+    SanPhamMau SanPhamMau @relation(fields: [MaSPM], references: [MaSPM], onDelete: Cascade, onUpdate: Cascade)
     MaSPM      String
 
     TenKhachHang String?
     MaKhachHang  String?
-    KhachHang    KhachHang? @relation(fields: [MaKhachHang], references: [MaKhachHang])
+    KhachHang    KhachHang? @relation(fields: [MaKhachHang], references: [MaKhachHang], onDelete: Cascade, onUpdate: Cascade)
 
     @@index([MaDanhGia, MaKhachHang])
 }
@@ -213,7 +214,7 @@ model HinhAnh {
     Url     String
 
     // 1 Hình ảnh chỉ có thể có ở 1 sản phẩm
-    SanPham SanPhamMau @relation(fields: [MaSPM], references: [MaSPM])
+    SanPham SanPhamMau @relation(fields: [MaSPM], references: [MaSPM], onDelete: Cascade, onUpdate: Cascade)
     MaSPM   String
 }
 
@@ -258,7 +259,7 @@ model SanPhamBienThe {
     Mau       String
     Gia       Float
 
-    SanPhamMau SanPhamMau @relation(fields: [MaSPM], references: [MaSPM])
+    SanPhamMau SanPhamMau @relation(fields: [MaSPM], references: [MaSPM], onDelete: Cascade, onUpdate: Cascade)
     MaSPM      String
 
     CT_DonHang CT_DonHang[]

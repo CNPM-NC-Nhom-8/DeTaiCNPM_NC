@@ -9,7 +9,7 @@ import { Card, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow }
 export const PhoneDetailInfo = ({
 	data,
 }: {
-	data: NonNullable<RouterOutputs["sanPham"]["getSanPham"]["ThongSoKyThuat"]>;
+	data: NonNullable<RouterOutputs["product"]["getSanPham"]["ThongSoKyThuat"]>;
 }) => {
 	return (
 		<div>

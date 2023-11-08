@@ -6,15 +6,15 @@ import z from "zod";
 
 export const commonRouter = createTRPCRouter({
 	getLoaiKH: publicProcedure.query(async ({ ctx }) => {
-		return ctx.db.loaiKhachHang.findMany();
+		return ctx.db.loaiKhachHang.findMany({ orderBy: { TenLoaiTV: "asc" } });
 	}),
 
 	getHangSX: publicProcedure.query(async ({ ctx }) => {
-		return ctx.db.hangSanXuat.findMany();
+		return ctx.db.hangSanXuat.findMany({ orderBy: { TenHSX: "asc" } });
 	}),
 
 	getCurrentUser: publicProcedure
-		.input(z.object({ allowedRoles: z.array(z.custom<Role>()).optional() }).optional())
+		.input(z.object({ allowedRoles: z.array(z.custom<Role>()) }).optional())
 		.query(async ({ ctx, input }) => {
 			if (!ctx.userId) return null;
 

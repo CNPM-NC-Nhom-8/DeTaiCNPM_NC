@@ -26,25 +26,25 @@ import { Pencil, PlusCircle, Settings2, XCircle } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
-export const LoaiKHActions = ({
+export const HangSXActions = ({
 	refetch,
-	LoaiKH,
+	HangSX,
 }: {
 	refetch: () => Promise<unknown>;
-	LoaiKH: RouterOutputs["common"]["getLoaiKH"];
+	HangSX: RouterOutputs["common"]["getHangSX"];
 }) => {
 	const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
 
 	const [actionType, setActionType] = useState<"Add" | "Edit" | "Delete">();
-	const [tenLoaiKH, setTenLKH] = useState("");
+	const [tenHangSX, setTenHangSX] = useState("");
 	const [selectedMaLKH, setMaLKH] = useState<string>();
 
-	const actionLoaiKH = api.admin.loaiKHActions.useMutation({
+	const actionLoaiKH = api.admin.hangSXActions.useMutation({
 		onSuccess: async () => {
 			await refetch();
 			onClose();
 
-			setTenLKH("");
+			setTenHangSX("");
 			setMaLKH(undefined);
 		},
 		onError: ({ message }) => {
@@ -58,7 +58,6 @@ export const LoaiKHActions = ({
 				<DropdownTrigger>
 					<Button
 						size="lg"
-						radius="lg"
 						isIconOnly
 						startContent={<Settings2 />}
 						className="rounded-l-none aria-[expanded=true]:scale-100"
@@ -72,15 +71,11 @@ export const LoaiKHActions = ({
 					}}
 				>
 					<DropdownSection showDivider title="Hành động">
-						<DropdownItem key="Add" description="Thêm loại khách hàng" startContent={<PlusCircle />}>
+						<DropdownItem key="Add" description="Thêm hãng sản xuất" startContent={<PlusCircle />}>
 							Thêm
 						</DropdownItem>
 
-						<DropdownItem
-							key="Edit"
-							description="Chỉnh sửa tên 1 loại khách hàng"
-							startContent={<Pencil />}
-						>
+						<DropdownItem key="Edit" description="Chỉnh sửa tên 1 hãng sản xuất" startContent={<Pencil />}>
 							Chỉnh sửa
 						</DropdownItem>
 					</DropdownSection>
@@ -89,7 +84,7 @@ export const LoaiKHActions = ({
 							key="Delete"
 							className="text-danger"
 							color="danger"
-							description="Xóa 1 loại khách hàng"
+							description="Xóa 1 hãng sản xuất"
 							startContent={<XCircle />}
 						>
 							Xóa
@@ -107,61 +102,61 @@ export const LoaiKHActions = ({
 
 								if (actionType === "Add")
 									actionLoaiKH.mutate({
-										TenLoaiTV: tenLoaiKH,
+										tenHangSX: tenHangSX,
 										type: actionType,
 									});
 								else if (actionType === "Edit" && selectedMaLKH)
 									actionLoaiKH.mutate({
-										MaLoaiKH: selectedMaLKH,
-										TenLoaiTV: tenLoaiKH,
+										maHangSX: selectedMaLKH,
+										tenHangSX: tenHangSX,
 										type: actionType,
 									});
 								else if (actionType === "Delete" && selectedMaLKH)
 									actionLoaiKH.mutate({
-										MaLoaiKH: selectedMaLKH,
+										maHangSX: selectedMaLKH,
 										type: actionType,
 									});
 							}}
 						>
 							<ModalHeader className="flex flex-col gap-1">
-								{actionType === "Add" && "Thêm loại khách hàng"}
-								{actionType === "Edit" && "Sửa tên loại khách hàng"}
-								{actionType === "Delete" && "Xóa loại khách hàng"}
+								{actionType === "Add" && "Thêm hãng sản xuất"}
+								{actionType === "Edit" && "Sửa tên hãng sản xuất"}
+								{actionType === "Delete" && "Xóa hãng sản xuất"}
 							</ModalHeader>
 
 							<ModalBody>
 								{actionType === "Add" && (
 									<Input
-										label="Tên Loại khách hàng"
+										label="Tên Hãng sản xuất"
 										labelPlacement="outside"
-										placeholder="Tên loại khách hàng mà bạn muốn tạo"
+										placeholder="Tên hãng sản xuất mà bạn muốn tạo"
 										isInvalid={actionLoaiKH.isError}
 										errorMessage={actionLoaiKH.error?.message}
-										value={tenLoaiKH}
-										onValueChange={setTenLKH}
+										value={tenHangSX}
+										onValueChange={setTenHangSX}
 									/>
 								)}
 
 								{actionType === "Edit" && (
 									<>
 										<Select
-											items={LoaiKH}
-											label="Loại khách hàng"
+											items={HangSX}
+											label="Hãng sản xuất"
 											labelPlacement="outside"
-											placeholder="Chọn loại khách hàng bạn muốn sửa tên"
+											placeholder="Chọn hãng sản xuất bạn muốn sửa tên"
 											onChange={(e) => setMaLKH(e.target.value)}
 										>
-											{(loaiKH) => <SelectItem key={loaiKH.MaLKH}>{loaiKH.TenLoaiTV}</SelectItem>}
+											{(hangSX) => <SelectItem key={hangSX.MaHSX}>{hangSX.TenHSX}</SelectItem>}
 										</Select>
 
 										<Input
-											label="Tên Loại khách hàng"
+											label="Tên Hãng sản xuất"
 											labelPlacement="outside"
-											placeholder="Tên mới cho loại khách hàng"
+											placeholder="Tên mới cho hãng sản xuất"
 											isInvalid={actionLoaiKH.isError}
 											errorMessage={actionLoaiKH.error?.message}
-											value={tenLoaiKH}
-											onValueChange={setTenLKH}
+											value={tenHangSX}
+											onValueChange={setTenHangSX}
 										/>
 									</>
 								)}
@@ -174,13 +169,13 @@ export const LoaiKHActions = ({
 										</p>
 
 										<Select
-											items={LoaiKH}
-											label="Loại khách hàng"
+											items={HangSX}
+											label="Hãng sản xuất"
 											labelPlacement="outside"
-											placeholder="Chọn loại khách hàng bạn muốn sửa xóa"
+											placeholder="Chọn hãng sản xuất bạn muốn sửa xóa"
 											onChange={(e) => setMaLKH(e.target.value)}
 										>
-											{(loaiKH) => <SelectItem key={loaiKH.MaLKH}>{loaiKH.TenLoaiTV}</SelectItem>}
+											{(hangSX) => <SelectItem key={hangSX.MaHSX}>{hangSX.TenHSX}</SelectItem>}
 										</Select>
 									</>
 								)}

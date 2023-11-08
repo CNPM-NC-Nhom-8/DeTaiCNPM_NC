@@ -1,7 +1,5 @@
 "use client";
 
-import NextLink from "next/link";
-
 import { Button, ButtonGroup, Link } from "@nextui-org/react";
 
 import { AlertTriangle } from "lucide-react";
@@ -23,7 +21,7 @@ export const ForbiddenPage = () => {
 				</p>
 
 				<ButtonGroup>
-					<Button as={NextLink} href="/" color="primary">
+					<Button as={Link} href="/" color="primary">
 						Quay lại trang chủ
 					</Button>
 

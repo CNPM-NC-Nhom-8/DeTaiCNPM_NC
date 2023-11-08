@@ -13,14 +13,26 @@ export const danhGiaRouter = createTRPCRouter({
 	}),
 
 	getDanhGia: publicProcedure
-		.input(z.object({ maSPM: z.string(), pageNum: z.number() }))
+		.input(z.object({ maSPM: z.string(), limit: z.number(), cursor: z.string().nullish() }))
 		.query(async ({ ctx, input }) => {
-			return await ctx.db.danhGia.findMany({
+			const limit = input.limit;
+
+			const danhGia = await ctx.db.danhGia.findMany({
 				where: { MaSPM: input.maSPM, MaTraLoi: null },
-				orderBy: { NgayDanhGia: "desc" },
 				include: { KhachHang: { include: { TaiKhoan: true } }, _count: { select: { TraLoiBoi: true } } },
-				take: input.pageNum * 5,
+				cursor: input.cursor ? { MaDanhGia: input.cursor } : undefined,
+				take: limit + 1,
+				orderBy: { NgayDanhGia: "desc" },
 			});
+
+			let nextCursor: typeof input.cursor | undefined = undefined;
+
+			if (danhGia.length > limit) {
+				const nextItem = danhGia.pop();
+				nextCursor = nextItem!.MaDanhGia;
+			}
+
+			return { danhGia, nextCursor };
 		}),
 
 	deleteDanhGia: staffProcedure.input(z.object({ maDanhGia: z.string() })).mutation(async ({ ctx, input }) => {
@@ -34,7 +46,7 @@ export const danhGiaRouter = createTRPCRouter({
 		.input(
 			z.object({
 				maSPM: z.string(),
-				noiDung: z.string(),
+				noiDung: z.string().min(10, "Nội dung đánh giá không thể dưới 10 ký tự!"),
 				maTraLoi: z.string().optional(),
 				maKhachHang: z.string().optional(),
 				tenKhachHang: z.string().optional(),

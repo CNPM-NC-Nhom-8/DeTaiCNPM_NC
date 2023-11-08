@@ -8,7 +8,7 @@ import { PhoneCardSkeleton } from "../common/PhoneCardSkeletons";
 import { Tab, Tabs } from "@nextui-org/react";
 
 export const RelatePhone = ({ maHSX }: { maHSX: string }) => {
-	const { data, isLoading } = api.sanPham.getSanPhamTuongTu.useQuery(
+	const { data, isLoading } = api.product.getSanPhamTuongTu.useQuery(
 		{ maHSX },
 		{ refetchOnReconnect: false, refetchOnWindowFocus: false },
 	);

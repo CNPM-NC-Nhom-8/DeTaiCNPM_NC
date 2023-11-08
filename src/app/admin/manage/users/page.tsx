@@ -14,7 +14,7 @@ export const generateMetadata = async (): Promise<Metadata> => {
 	const user = await getUser();
 
 	if (!user) return { title: "Lỗi 403 - Cấm truy cập" };
-	return { title: "Quản lý nhân sự - Trang Admin" };
+	return { title: "Quản lý người dùng - Trang Admin" };
 };
 
 export default async function Page() {

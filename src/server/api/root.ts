@@ -2,13 +2,13 @@ import { adminRouter } from "./routers/admin";
 import { cartRouter } from "./routers/cart";
 import { commonRouter } from "./routers/common";
 import { danhGiaRouter } from "./routers/danhGia";
-import { sanPhamRouter } from "./routers/sanPham";
+import { productRouter } from "./routers/product";
 import { taiKhoanRouter } from "./routers/taiKhoan";
 import { createTRPCRouter } from "./trpc";
 
 export const appRouter = createTRPCRouter({
 	danhGia: danhGiaRouter,
-	sanPham: sanPhamRouter,
+	product: productRouter,
 	taiKhoan: taiKhoanRouter,
 	cart: cartRouter,
 	admin: adminRouter,

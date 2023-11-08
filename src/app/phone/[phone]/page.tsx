@@ -10,22 +10,23 @@ import { api } from "@/utils/trpc/server";
 
 import type { Metadata } from "next";
 
-import { currentUser } from "@clerk/nextjs";
-
-export const generateMetadata = async ({
-	params: { phone: encodePhone },
-}: {
+type PropsType = {
 	params: { phone: string };
-}): Promise<Metadata> => {
-	const sanPham = await api.sanPham.getSanPham.query({ tenSP: encodePhone });
+	
+};
+
+export const generateMetadata = async ({ params: { phone: encodePhone } }: PropsType): Promise<Metadata> => {
+	const sanPham = await api.product.getSanPham.query({ tenSP: encodePhone });
 
 	if (!sanPham) return { title: "Sản phẩm không tồn tại" };
 	return { title: sanPham.TenSP };
 };
 
-export default async function Page({ params: { phone: encodePhone } }: { params: { phone: string } }) {
-	const user = await currentUser();
-	const data = await api.sanPham.getSanPham.query({ tenSP: encodePhone });
+export default async function Page({ params: { phone: encodePhone } }: PropsType) {
+	const [data, user] = await Promise.all([
+		api.product.getSanPham.query({ tenSP: encodePhone }),
+		api.common.getCurrentUser.query(),
+	]);
 
 	return (
 		<main className="container flex max-w-6xl flex-grow flex-col gap-6 px-6 py-4">
@@ -48,7 +49,7 @@ export default async function Page({ params: { phone: encodePhone } }: { params:
 
 					<FAQ data={data.FAQ} />
 
-					<DanhGiaSanPham SanPhamMau={data} userJSON={JSON.stringify(user)} />
+					<DanhGiaSanPham sanPham={data} user={user} />
 				</div>
 
 				<aside className="flex w-1/3 flex-shrink-0 flex-col gap-4">

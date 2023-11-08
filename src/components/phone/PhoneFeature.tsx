@@ -1,7 +1,5 @@
 "use client";
 
-import NextLink from "next/link";
-
 import { Card, Image, Link } from "@nextui-org/react";
 
 import ReactMarkdown from "react-markdown";
@@ -24,7 +22,7 @@ export const PhoneFeatures = ({ children }: { children: string }) => {
 					h3: ({ children }) => <h3 className="text-xl font-semibold">{children}</h3>,
 					h4: ({ children }) => <h4 className="text-lg font-semibold">{children}</h4>,
 					a: ({ children, href }) => (
-						<Link as={NextLink} underline="hover" href={href} target={"_blank"}>
+						<Link as={Link} underline="hover" href={href} target={"_blank"}>
 							{children}
 						</Link>
 					),

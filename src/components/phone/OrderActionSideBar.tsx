@@ -1,147 +1,148 @@
 "use client";
 
+import { cn, moneyFormat } from "@/utils/common";
 import { api } from "@/utils/trpc/react";
 import type { RouterOutputs } from "@/utils/trpc/shared";
+
+import { InsuranceTypeOptions } from "./data";
+
+import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { Badge, Button, ButtonGroup, Card, CardHeader, Radio, RadioGroup, Spinner } from "@nextui-org/react";
 import type { Insurance } from "@prisma/client";
 
 import { CheckIcon, DollarSign, ShieldCheck, ShoppingCart } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
+import z from "zod";
 
-const InsuranceTypeOptions: { price: number; type: Insurance; description: string }[] = [
-	{
-		price: 1_100_000,
-		type: "OneToOneVIP6Months",
-		description: "1 đổi 1 VIP 6 tháng: Đổi máy mới tương đương khi có lỗi từ NSX trong 6 tháng",
-	},
-	{
-		price: 1_600_000,
-		type: "ReplacementOr12MonthsRepair",
-		description:
-			"S24 + 12 tháng: Đổi sản phẩm tương đương hoặc miễn phí chi phí sửa chữa nếu có lỗi của NSX khi hết hạn bảo hành trong 12 tháng",
-	},
-	{
-		price: 1_800_000,
-		type: "OneToOneVIP12Months",
-		description: "1 đổi 1 VIP 12 tháng: Đổi máy mới tương đương khi có lỗi từ NSX trong 12 tháng",
-	},
-	{
-		price: 2_400_000,
-		type: "DropOrWaterDamage",
-		description: "Rơi vỡ - Rớt nước: Hỗ trợ 90% chi phí sửa chữa, đổi mới sản phẩm nếu hư hỏng nặng trong 12 tháng",
-	},
-];
+export const OrderActionSideBar = ({ data }: { data: RouterOutputs["product"]["getSanPham"] }) => {
+	const router = useRouter();
+	const pathname = usePathname();
+	const searchParams = useSearchParams();
 
-export const OrderActionSideBar = ({ data }: { data: RouterOutputs["sanPham"]["getSanPham"] }) => {
-	const moneyFormat = new Intl.NumberFormat("de-DE", { style: "currency", currency: "vnd" });
+	const dungLuong = useMemo(
+		() => Array.from(new Set(data.SanPhamBienThe.map((SP) => SP.DungLuong))),
+		[data.SanPhamBienThe],
+	);
 
-	const DungLuong = Array.from(new Set(data.SanPhamBienThe.sort((a, b) => a.Gia - b.Gia).map((SP) => SP.DungLuong)));
-	const [selectedDungLuong, setDungLuong] = useState(DungLuong[0]);
+	const storageValidate = useMemo(() => {
+		return z
+			.string()
+			.nullish()
+			.transform((value) => {
+				return value && dungLuong.includes(value) ? value : dungLuong[0]!;
+			});
+	}, [dungLuong]);
 
-	const MauSac = Array.from(new Set(data.SanPhamBienThe.sort().map((SP) => SP.Mau)));
-	const [selectedMauSac, setMauSac] = useState(MauSac[0]);
+	const selectedStorage = storageValidate.parse(searchParams.get("storage"));
+
+	const mauSac = useMemo(
+		() =>
+			Array.from(
+				new Set(
+					data.SanPhamBienThe.filter(({ DungLuong }) => DungLuong === selectedStorage).map(({ Mau }) => Mau),
+				),
+			),
+		[data.SanPhamBienThe, selectedStorage],
+	);
+
+	const colorValidate = useMemo(() => {
+		return z
+			.string()
+			.nullish()
+			.transform((value) => {
+				if (value && mauSac.includes(value)) return value;
+
+				const defaultColor = mauSac[0]!;
+				const searchParams = new URLSearchParams();
+
+				searchParams.set("storage", selectedStorage);
+				searchParams.set("color", defaultColor);
+
+				router.replace(pathname + "?" + searchParams.toString());
+
+				return defaultColor;
+			});
+	}, [mauSac, selectedStorage]);
+
+	const selectedColor = colorValidate.parse(searchParams.get("color"));
 
 	const [selectedInsurance, setInsurance] = useState<Insurance>("None");
 
 	const trpcContext = api.useUtils();
-	const themVaoGioHang = api.cart.themVaoGiohang.useMutation({
-		onSuccess: async () => {
-			await trpcContext.cart.layGioHang.refetch();
-		},
+	const themVaoGioHang = api.cart.addItemIntoCart.useMutation({
+		onSuccess: async () => await trpcContext.cart.getCartItems.refetch(),
 	});
-
-	useEffect(() => {
-		const SP = data.SanPhamBienThe.filter(
-			(SP) => SP.DungLuong === selectedDungLuong && SP.Mau === selectedMauSac,
-		)[0];
-
-		if (!SP) setMauSac(data.SanPhamBienThe.filter((SP) => SP.DungLuong === selectedDungLuong)[0]!.Mau);
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [selectedDungLuong]);
 
 	return (
 		<aside className="flex w-1/3 flex-shrink-0 flex-col gap-4">
 			<section className="grid grid-cols-3 gap-4">
-				{DungLuong.map((item, index) => {
-					const SP = data.SanPhamBienThe.filter((SP) => SP.DungLuong === item)[index];
+				<h4 className="col-span-3 font-semibold">Chọn dung lượng của sản phẩm</h4>
+
+				{dungLuong.map((item) => {
+					const SP = data.SanPhamBienThe.find(({ DungLuong }) => DungLuong === item)!;
 
 					return (
 						<Badge
-							key={SP!.MaSP}
+							key={[item, SP.MaSP].join("-")}
 							content={<CheckIcon size={16} />}
-							isInvisible={selectedDungLuong !== item}
-							disableOutline
+							isInvisible={selectedStorage !== item}
 							className="bg-success-500 text-success-foreground"
 						>
-							<div className="contents" onClick={() => setDungLuong(item)}>
+							<Link
+								className="contents"
+								href={{ pathname, query: { storage: item, color: selectedColor } }}
+							>
 								<Card
-									className={`w-full cursor-pointer gap-1 border-2 border-transparent py-2 text-center text-sm ${
-										selectedDungLuong === item && "border-success-500"
-									}`}
+									className={cn(
+										"w-full cursor-pointer gap-1 border-2 border-transparent py-2 text-center text-sm",
+										{ "border-success-500": selectedStorage === item },
+									)}
 								>
 									<span className="font-semibold">{item}</span>
-									<span>{moneyFormat.format(SP!.Gia)}</span>
 								</Card>
-							</div>
+							</Link>
 						</Badge>
 					);
 				})}
 			</section>
 
-			<h4 className="font-semibold">Chọn màu để xem giá và chi nhánh có hàng</h4>
-
 			<section className="grid grid-cols-3 gap-2">
-				{MauSac.map((item) => {
-					const SP = data.SanPhamBienThe.filter(
-						(SP) => SP.Mau === item && SP.DungLuong === selectedDungLuong,
-					)[0];
+				<h4 className="col-span-3 font-semibold">Chọn màu để xem giá</h4>
 
-					if (!SP) {
-						const price = data.SanPhamBienThe.filter((SP) => SP.DungLuong === selectedDungLuong)[0]!.Gia;
+				{mauSac.map((item) => {
+					const SP = data.SanPhamBienThe.find(
+						({ DungLuong, Mau }) => DungLuong === selectedStorage && Mau === selectedColor,
+					)!;
 
-						return (
-							<Badge key={`${item}-${selectedDungLuong}-notFound`} disableOutline isInvisible>
-								<div className="contents">
+					return (
+						<>
+							<Badge
+								key={[item, SP.MaSP].join("-")}
+								content={<CheckIcon size={16} />}
+								isInvisible={selectedColor !== item}
+								className="bg-success-500 text-success-foreground"
+							>
+								<Link
+									className="contents"
+									href={{ pathname, query: { storage: selectedStorage, color: item } }}
+								>
 									<Card
-										isDisabled
-										className={
-											"w-full cursor-not-allowed gap-2 border-2 border-transparent px-4 py-2 text-center text-sm"
-										}
+										className={cn(
+											"w-full cursor-pointer gap-2 border-2 border-transparent px-4 py-2 text-center text-sm",
+											{ "border-success-500": selectedColor === item },
+										)}
 									>
 										<div className="flex items-center gap-2">
 											<span className="flex-grow font-semibold">{item}</span>
 										</div>
 
-										<span>{moneyFormat.format(price)}</span>
+										<span>{moneyFormat.format(SP.Gia)}</span>
 									</Card>
-								</div>
+								</Link>
 							</Badge>
-						);
-					}
-
-					return (
-						<Badge
-							key={SP.MaSP}
-							disableOutline
-							content={<CheckIcon size={16} />}
-							isInvisible={selectedMauSac !== item}
-							className="bg-success-500 text-success-foreground"
-						>
-							<div className="contents" onClick={() => setMauSac(item)}>
-								<Card
-									className={`w-full cursor-pointer gap-2 border-2 border-transparent px-4 py-2 text-center text-sm ${
-										selectedMauSac === item && "border-success-500"
-									}`}
-								>
-									<div className="flex items-center gap-2">
-										<span className="flex-grow font-semibold">{item}</span>
-									</div>
-
-									<span>{moneyFormat.format(SP.Gia)}</span>
-								</Card>
-							</div>
-						</Badge>
+						</>
 					);
 				})}
 			</section>
@@ -161,8 +162,12 @@ export const OrderActionSideBar = ({ data }: { data: RouterOutputs["sanPham"]["g
 						isLoading={themVaoGioHang.isLoading}
 						spinner={<Spinner color="success" size="sm" />}
 						endContent={!themVaoGioHang.isLoading && <ShoppingCart size={20} />}
-						onClick={() => {
-							themVaoGioHang.mutate({ maSP: data.MaSPM, quanlity: 1, type: selectedInsurance });
+						onPress={() => {
+							const SP = data.SanPhamBienThe.find(
+								({ DungLuong, Mau }) => DungLuong === selectedStorage && Mau === selectedColor,
+							)!;
+
+							themVaoGioHang.mutate({ maSP: SP.MaSP, quanlity: 1, type: selectedInsurance });
 						}}
 					>
 						Thêm vào

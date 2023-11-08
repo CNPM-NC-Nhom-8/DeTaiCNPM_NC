@@ -33,11 +33,11 @@ export const PhoneCard = ({ sanPhamMau }: ParamsType) => {
 		data,
 		isLoading,
 		refetch: refetchYeuThich,
-	} = api.sanPham.checkThichSP.useQuery(
+	} = api.product.checkThichSP.useQuery(
 		{ maSPM: sanPhamMau.MaSPM },
 		{ refetchOnReconnect: false, refetchOnWindowFocus: false },
 	);
-	const yeuThich = api.sanPham.yeuThich.useMutation({
+	const yeuThich = api.product.yeuThich.useMutation({
 		onSuccess: async () => await refetchYeuThich(),
 		onError: ({ message }) => toast.error("Lỗi: " + message),
 	});
@@ -84,7 +84,7 @@ export const PhoneCard = ({ sanPhamMau }: ParamsType) => {
 							}
 							onPress={() => {
 								if (!isSignedIn) return onOpen();
-								yeuThich.mutate({ maSPM: sanPhamMau.MaSPM });
+								yeuThich.mutate({ maSPM: sanPhamMau.MaSPM, isFavored: data ?? false });
 							}}
 						/>
 					</Tooltip>
