@@ -39,6 +39,8 @@ export const ProductActions = ({ product, refetch }: { product: ProductType; ref
 		onError: ({ message }) => toast.error("Lỗi: " + message),
 	});
 
+	console.log(product)
+
 	return (
 		<div className="relative flex items-center justify-end gap-2">
 			<Dropdown showArrow>
