@@ -9,6 +9,9 @@ const config: Config = {
 			keyframes: {
 				loading: { from: { transform: "rotate(0deg)" }, to: { transform: "rotate(-360deg)" } },
 			},
+			colors: {
+				'gray': '#a6a6a7',
+			}
 		},
 		container: {
 			center: true,
