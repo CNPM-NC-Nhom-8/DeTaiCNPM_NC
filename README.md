@@ -1,36 +1,127 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Đồ án CellPhoneX
 
-## Getting Started
+Disclaimer: Đây chỉ là 1 đồ án được thực hiện với mục đích giáo dục, mọi thông tin và hình ảnh trên website đều được sưu tầm trên Internet. Chúng tôi không sở hữu hay chịu trách nhiệm bất kỳ thông tin nào trên web này. Nếu làm ảnh hưởng đến cá nhân hay tổ chức nào, khi được yêu cầu, chúng tôi sẽ xem xét và gỡ bỏ ngay lập tức.
 
-First, run the development server:
+[@Noki-Asakuri](mailto:phungtanphat23@gmail.com)
+
+## Công nghệ
+
+-   [NextJS](https://nextjs.org/)
+-   [Prisma](https://www.prisma.io/)
+-   [Supabase](https://supabase.com/)
+-   [TailwindCSS](https://tailwindcss.com/)
+-   [Clerk](https://clerk.com/)
+
+## Bắt đầu
+
+### 1. Yêu cầu:
+
+-   [Nodejs](https://nodejs.org/en) - Phiên bản 20 trở lên (khuyến khích là 20.9.0)
+-   [Git](https://git-scm.com/)
+
+### 2. Cài đặt Pnpm (Không bắt buộc, nhưng khuyến khích dùng, hoặc nếu đã có)
+
+-   Thông tin thêm về [pnpm](https://pnpm.io/)
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+corepack enable
+corepack prepare --activate pnpm@latest
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+-   Kiểm tra xem pnpm đã được cài chưa
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm -v
+# 8.10.4
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+### 3. Lấy đề án từ github (Không bắt buộc nếu đã có từ trước)
 
-## Learn More
+```bash
+git clone https://github.com/CNPM-NC-Nhom-8/DeTaiCNPM_NC.git # Sẽ clone về trong folder DeTaiCNPM_NC
+```
 
-To learn more about Next.js, take a look at the following resources:
+-   Nhảy vào folder đề án
 
--   [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
--   [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+cd DeTaiCNPM_NC
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+### 4. Cài đặt các package cần thiết
 
-## Deploy on Vercel
+```bash
+pnpm i
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# Hoặc
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+pnpm install
+```
+
+### 5. Chạy server dev
+
+```bash
+pnpm dev # Mặc định chạy trên port 3000
+
+# Output
+   ▲ Next.js 14.0.1
+   - Local:        http://localhost:3000
+   - Environments: .env
+
+# Hoặc
+
+pnpm dev -p 3001 # Chạy trên port 3001, số port có thể thay đổi
+# Output
+   ▲ Next.js 14.0.1
+   - Local:        http://localhost:3001
+   - Environments: .env
+
+```
+
+### 6. Đẩy phần code mới lên
+
+⚠ **Vui lòng không đẩy thẳng lên branch main** ⚠
+
+#### 6.1 Tạo 1 branch mới (Khuyến khích)
+
+```bash
+git branch <Tên branch>
+git checkout -b <Tên branch>
+
+# Ví dụ
+git branch Asakuri
+git checkout -b Asakuri
+```
+
+#### 6.2 Thêm những file cần cần đẩy lên
+
+```bash
+git add . # Thêm tất cả các files
+
+# Hoặc
+
+git add ./prisma/schema.prisma ./src/app/page.tsx
+```
+
+#### 6.3 Viết commit
+
+```bash
+git commit -m "<Nội dung commit>"
+
+# Ví dụ
+git commit -m "Cập nhật schema database, layout cho trang chủ"
+```
+
+#### 6.3 Đẩy code lên github
+
+```bash
+git push origin <Tên branch>
+
+# Ví dụ
+git push origin Asakuri
+```
+
+## Tài liệu học thêm
+
+-   [Next.js](https://nextjs.org/docs)
+-   [ReactJS](https://react.dev/)
+-   [Learn Next.js](https://nextjs.org/learn)
