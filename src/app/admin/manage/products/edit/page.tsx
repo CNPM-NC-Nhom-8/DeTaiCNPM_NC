@@ -1,4 +1,5 @@
 import { EditProduct } from "@/components/admin/products/EditProduct";
+import { ProductNav } from "@/components/admin/products/ProductNav";
 import { ForbiddenPage } from "@/components/common/Page403";
 import { api } from "@/utils/trpc/server";
 
@@ -26,6 +27,7 @@ export default async function EditProductPage() {
 	]);
 
 	return <section className="flex w-full flex-col gap-2">
+		<ProductNav></ProductNav>
 		<EditProduct initialHangSX={HangSX}></EditProduct>
 	</section>;
 }

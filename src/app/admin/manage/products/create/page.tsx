@@ -1,10 +1,12 @@
 import { CreateProduct } from "@/components/admin/products/CreateProduct";
+import { ProductNav } from "@/components/admin/products/ProductNav";
 import { ForbiddenPage } from "@/components/common/Page403";
 import { api } from "@/utils/trpc/server";
 
 import type { Metadata } from "next";
 
 import { cache } from "react";
+import { string } from "zod";
 
 const getUser = cache(async () => {
 	return await api.common.getCurrentUser.query({ allowedRoles: ["NhanVien", "QuanTriVien"] });
@@ -19,6 +21,8 @@ export const generateMetadata = async (): Promise<Metadata> => {
 
 export default async function CreateProductPage() {
 	const user = await getUser();
+	const title = 'Thêm sản phẩm'
+
 	if (!user) return <ForbiddenPage />;
 
 	const [HangSX] = await Promise.all([
@@ -26,6 +30,7 @@ export default async function CreateProductPage() {
 	]);
 
 	return <section className="flex w-full flex-col gap-2">
+		<ProductNav></ProductNav>
 		<CreateProduct initialHangSX={HangSX}></CreateProduct>
 	</section>;
 }
