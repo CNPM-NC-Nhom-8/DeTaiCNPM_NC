@@ -144,6 +144,12 @@ export const MainNavbar = () => {
 											Cài đặt người dùng
 										</Link>
 									</DropdownItem>
+
+									<DropdownItem key="" startContent={<UserCog size={16} />}>
+										<Link className="block w-full" href="/auth/account/history/payment">
+											Lịch sử đơn hàng
+										</Link>
+									</DropdownItem>
 								</DropdownSection>
 
 								<DropdownSection title="Vùng nguy hiểm">
