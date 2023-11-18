@@ -296,14 +296,14 @@ export const adminRouter = createTRPCRouter({
 								...(input.query.type === "Search-ID"
 									? { MaTaiKhoan: { contains: trimedValue, mode: "insensitive" } }
 									: input.query.type === "Search-Email"
-									? { Email: { contains: trimedValue, mode: "insensitive" } }
-									: input.query.type === "Search-Name"
-									? { TenTaiKhoan: { contains: trimedValue, mode: "insensitive" } }
-									: {
-											SDT: nullPhoneNumbers.includes(trimedValue)
-												? null
-												: { contains: trimedValue, mode: "insensitive" },
-									  }),
+									  ? { Email: { contains: trimedValue, mode: "insensitive" } }
+									  : input.query.type === "Search-Name"
+									    ? { TenTaiKhoan: { contains: trimedValue, mode: "insensitive" } }
+									    : {
+													SDT: nullPhoneNumbers.includes(trimedValue)
+														? null
+														: { contains: trimedValue, mode: "insensitive" },
+									      }),
 						  }
 						: {},
 				],
@@ -359,8 +359,8 @@ export const adminRouter = createTRPCRouter({
 								...(input.query.type === "Search-ID"
 									? { MaSPM: { contains: trimedValue, mode: "insensitive" } }
 									: input.query.type === "Search-Name"
-									? { TenSP: { contains: trimedValue, mode: "insensitive" } }
-									: {}),
+									  ? { TenSP: { contains: trimedValue, mode: "insensitive" } }
+									  : {}),
 						  }
 						: {},
 				],

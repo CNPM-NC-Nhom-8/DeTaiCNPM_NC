@@ -68,6 +68,7 @@ model KhachHang {
     MaTaiKhoan String   @unique
     TaiKhoan   TaiKhoan @relation(fields: [MaTaiKhoan], references: [MaTaiKhoan], onUpdate: Cascade, onDelete: Cascade)
 
+    DonHang         DonHang[]
     DanhGia         DanhGia[]
     CartItem        CartItem[]
     SanPhamYeuThich SanPhamYeuThich[]
@@ -135,7 +136,6 @@ model SanPhamMau {
     HinhAnh        HinhAnh[] // 1 Sản phẩm có thể có nhiều hình ảnh
     DanhGia        DanhGia[] // 1 Sản phẩm có thể có nhiều đánh giá
     SanPhamBienThe SanPhamBienThe[]
-    MatHang        MatHang[]
 
     ThongSoKyThuat ThongSoKyThuat?
 
@@ -228,27 +228,30 @@ model DonHang {
     PhuongThucTT String
     TrangThai    String
     TongTien     Float // Float vì số tiền có thể lẽ
-    NgayDat      DateTime
+    NgayDat      DateTime @default(now())
 
-    CT_DonHang CT_DonHang?
+    CT_DonHang CT_DonHang[]
 
-    MaKhuyenMai String
-    KhuyenMai   KhuyenMai @relation(fields: [MaKhuyenMai], references: [MaKhuyenMai])
+    MaKhuyenMai String?
+    KhuyenMai   KhuyenMai? @relation(fields: [MaKhuyenMai], references: [MaKhuyenMai])
+
+    maKhachHang String?
+    KhachHang   KhachHang? @relation(fields: [maKhachHang], references: [MaKhachHang], onDelete: Cascade, onUpdate: Cascade)
 }
 
 model CT_DonHang {
-    MaCT_DH String @id @default(uuid())
+    MaCT_DH       String    @id @default(uuid())
+    InsuranceType Insurance @default(None)
+    SoLuong       Int
 
-    MaSP      String
-    MaMH      String @unique
-    MaDonHang String @unique
+    MaSP    String
+    SanPham SanPhamBienThe @relation(fields: [MaSP], references: [MaSP], onDelete: Cascade, onUpdate: Cascade)
 
-    SoLuong Int
+    MaDonHang String
+    DonHang   DonHang @relation(fields: [MaDonHang], references: [MaDonHang], onDelete: Cascade, onUpdate: Cascade)
 
-    DonHang DonHang @relation(fields: [MaDonHang], references: [MaDonHang])
-
-    SanPham SanPhamBienThe[]
-    MatHang MatHang[]
+    MaMH    String
+    MatHang MatHang @relation(fields: [MaMH], references: [MaMH])
 
     @@unique([MaSP, MaMH, MaDonHang])
 }
@@ -263,21 +266,18 @@ model SanPhamBienThe {
     MaSPM      String
 
     CT_DonHang CT_DonHang[]
+    CartItem   CartItem[]
 
-    MatHang  MatHang[]
-    CartItem CartItem[]
+    MatHang MatHang?
 }
 
 model MatHang {
     MaMH     String   @id @default(uuid())
-    TonKho   String
+    TonKho   Int
     NgayNhap DateTime
 
+    MaSP    String         @unique
     SanPham SanPhamBienThe @relation(fields: [MaSP], references: [MaSP])
-    MaSP    String
 
-    SanPhamMau SanPhamMau @relation(fields: [MaSPM], references: [MaSPM])
-    MaSPM      String
-
-    CT_DonHang CT_DonHang @relation(fields: [MaMH], references: [MaMH])
+    CT_DonHang CT_DonHang[]
 }

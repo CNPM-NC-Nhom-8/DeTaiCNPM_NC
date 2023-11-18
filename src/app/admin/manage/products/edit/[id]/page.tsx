@@ -1,5 +1,4 @@
 import { EditProduct } from "@/components/admin/products/EditProduct";
-import { ProductNav } from "@/components/admin/products/ProductNav";
 import { ForbiddenPage } from "@/components/common/Page403";
 import { api } from "@/utils/trpc/server";
 
@@ -18,16 +17,15 @@ export const generateMetadata = async (): Promise<Metadata> => {
 	return { title: "Cập nhật sản phẩm - Trang Admin" };
 };
 
-export default async function EditProductPage() {
+export default async function EditProductPage({ params: { id } }: { params: { id: string } }) {
 	const user = await getUser();
 	if (!user) return <ForbiddenPage />;
 
-	const [HangSX] = await Promise.all([
-		api.common.getHangSX.query(),
-	]);
+	const [HangSX] = await Promise.all([api.common.getHangSX.query()]);
 
-	return <section className="flex w-full flex-col gap-2">
-		<ProductNav></ProductNav>
-		<EditProduct initialHangSX={HangSX}></EditProduct>
-	</section>;
+	return (
+		<section className="flex w-full flex-col gap-2">
+			<EditProduct initialHangSX={HangSX}></EditProduct>
+		</section>
+	);
 }

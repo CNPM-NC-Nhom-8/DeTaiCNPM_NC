@@ -1,19 +1,10 @@
 "use client";
 
-import { api } from "@/utils/trpc/react";
 import type { RouterOutputs } from "@/utils/trpc/shared";
 
 import { Button, Card, CardBody, CardFooter, CardHeader, Input, Select, SelectItem } from "@nextui-org/react";
-import toast from "react-hot-toast";
 
-export const CreateProduct = ({ initialHangSX }: { initialHangSX: RouterOutputs["common"]["getHangSX"] }) => {
-	const { data: HangSX, refetch: refetchHangSX } = api.common.getHangSX.useQuery(undefined, {
-		initialData: initialHangSX,
-		refetchOnReconnect: false,
-		refetchOnWindowFocus: false,
-		onError: ({ message }) => toast.error("Lỗi: " + message),
-	});
-
+export const CreateProduct = ({ hangSX }: { hangSX: RouterOutputs["common"]["getHangSX"] }) => {
 	return (
 		<Card className="p-2">
 			<CardHeader>
@@ -37,6 +28,7 @@ export const CreateProduct = ({ initialHangSX }: { initialHangSX: RouterOutputs[
 					<label className="p-2 text-sm font-medium text-[#a6a6a7]" htmlFor="anhbia">
 						Ảnh bìa
 					</label>
+
 					<input
 						id="anhbia"
 						type="file"
@@ -51,7 +43,7 @@ export const CreateProduct = ({ initialHangSX }: { initialHangSX: RouterOutputs[
 				</div>
 
 				<div className="mb-5 flex w-full flex-wrap gap-4 md:flex-nowrap">
-					<Select label="Chọn hãng sản xuất" items={HangSX} className="max-w-xs">
+					<Select label="Chọn hãng sản xuất" items={hangSX} className="max-w-xs">
 						{(item) => <SelectItem key={item.MaHSX}>{item.TenHSX}</SelectItem>}
 					</Select>
 				</div>

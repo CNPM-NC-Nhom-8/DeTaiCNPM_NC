@@ -19,7 +19,7 @@ export const productRouter = createTRPCRouter({
 				const data = await ctx.db.sanPhamMau.findFirst({
 					include: {
 						HinhAnh: true,
-						SanPhamBienThe: true,
+						SanPhamBienThe: { include: { MatHang: true }, orderBy: [{ Gia: "asc" }, { Mau: "desc" }] },
 						ThongSoKyThuat: true,
 						FAQ: true,
 					},
@@ -33,7 +33,7 @@ export const productRouter = createTRPCRouter({
 				where: { TenSP: input.tenSP ? decodeURIComponent(input.tenSP) : undefined, MaSPM: input.maSPM },
 				include: {
 					HinhAnh: true,
-					SanPhamBienThe: { orderBy: [{ Gia: "asc" }, { Mau: "desc" }] },
+					SanPhamBienThe: { include: { MatHang: true }, orderBy: [{ Gia: "asc" }, { Mau: "desc" }] },
 					ThongSoKyThuat: true,
 					FAQ: true,
 				},

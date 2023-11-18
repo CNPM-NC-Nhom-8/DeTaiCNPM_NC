@@ -1,31 +1,22 @@
-"use client"
+"use client";
+
+import { moneyFormat } from "@/utils/common";
+import type { RouterOutputs } from "@/utils/trpc/shared";
+
+import { InsuranceTypeOptions } from "../phone/data";
 
 import Link from "next/link";
-import toast from "react-hot-toast";
-import { api } from "@/utils/trpc/react";
-import { useRouter } from "next/navigation";
-import { moneyFormat } from "@/utils/common";
-import { InsuranceTypeOptions } from "../phone/data";
-import type { RouterOutputs } from "@/utils/trpc/shared";
+
 import { Card, CardBody, Image, Select, SelectItem } from "@nextui-org/react";
 
-export const PaymentItem = ({item} : {item: RouterOutputs["cart"]["getCartItems"][number]}) => {
-    const router = useRouter();
-	const apiUtils = api.useUtils();
+export const PaymentItem = ({ item }: { item: RouterOutputs["cart"]["getCartItems"][number] }) => {
+	const insuranceType = InsuranceTypeOptions.find(({ type }) => type === item.InsuranceType);
 
-    const removeItem = api.cart.updateCartItem.useMutation({
-		onSuccess: async () => {
-			await apiUtils.cart.getCartItems.refetch();
-			router.refresh();
-		},
-		onError: ({ message }) => toast.error("Lỗi: " + message),
-	});
-
-    return (
-        <Card>
-            <CardBody className="gap-4">
-                <section className="flex">
-                <Link
+	return (
+		<Card>
+			<CardBody className="gap-4">
+				<section className="flex">
+					<Link
 						className="flex w-2/3 gap-4"
 						href={"/phone/" + encodeURIComponent(item.SanPham.SanPhamMau.TenSP)}
 					>
@@ -35,7 +26,7 @@ export const PaymentItem = ({item} : {item: RouterOutputs["cart"]["getCartItems"
 							alt={item.SanPham.SanPhamMau.TenSP}
 						/>
 
-						<div className="flex flex-col justify-center gap-2">
+						<div className="flex flex-grow flex-col justify-between gap-2">
 							<div>
 								<h3 className="text-lg font-semibold">{item.SanPham.SanPhamMau.TenSP}</h3>
 								<span>
@@ -43,37 +34,37 @@ export const PaymentItem = ({item} : {item: RouterOutputs["cart"]["getCartItems"
 								</span>
 							</div>
 
-							<span className="text-danger">{moneyFormat.format(item.SanPham.Gia)}</span>
+							<div className="text-danger">
+								<span>{moneyFormat.format(item.SanPham.Gia * item.Quantity)}</span>
+
+								{insuranceType && insuranceType.type !== "None" && (
+									<span className="text-small"> + {moneyFormat.format(insuranceType.price)}</span>
+								)}
+							</div>
 						</div>
 					</Link>
 
-                    <div className="relative flex flex-grow flex-col items-end gap-2">
+					<div className="relative flex flex-grow flex-col items-end justify-end gap-2">
 						<span>Số lượng: {item.Quantity}</span>
 					</div>
-                </section>
-                <section>
+				</section>
+
+				<section>
 					<Select
 						size="sm"
 						items={[...InsuranceTypeOptions, { price: 0, type: "None", description: "Không có" }]}
 						defaultSelectedKeys={[item.InsuranceType]}
-						onChange={(e) =>
-							removeItem.mutate({
-								MaCartItem: item.MaCartItem,
-								data: {
-									type: "update",
-									insuranceType: e.target.value as (typeof InsuranceTypeOptions)[number]["type"],
-								},
-							})
-						}
+						isDisabled
+						labelPlacement="outside"
 					>
 						{(item) => (
 							<SelectItem key={item.type} description={item.description.split(": ")[1]}>
-								{item.description.split(": ")[0]}
+								{item.description.split(": ")[0] + " - " + moneyFormat.format(item.price)}
 							</SelectItem>
 						)}
 					</Select>
 				</section>
-            </CardBody>
-        </Card>
-    );
-}
+			</CardBody>
+		</Card>
+	);
+};

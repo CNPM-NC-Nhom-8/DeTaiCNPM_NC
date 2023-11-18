@@ -11,7 +11,8 @@ export function MainLayout({ children, headers }: { children: React.ReactNode; h
 	const router = useRouter();
 
 	return (
-		<NextUIProvider navigate={(path) => router.push(path)} className="flex min-h-screen max-w-[100vw] flex-col">
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		<NextUIProvider navigate={router.push} className="flex min-h-screen max-w-[100vw] flex-col">
 			<NextThemesProvider attribute="class" defaultTheme="dark">
 				<TRPCReactProvider headers={headers}>{children}</TRPCReactProvider>
 			</NextThemesProvider>

@@ -17,6 +17,9 @@ import { Toaster } from "react-hot-toast";
 
 const inter = Inter({ subsets: ["latin"] });
 
+export const dynamic = "force-dynamic",
+	fetchCache = "default-no-store";
+
 export const metadata: Metadata = {
 	title: {
 		template: "%s - CellPhoneX",

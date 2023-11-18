@@ -1,17 +1,19 @@
-"use client"
+"use client";
 
-import { Button } from "@nextui-org/react";
-import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-export const HistoryPaymentNav = () => {
-    const router = useRouter();
+import { Button } from "@nextui-org/react";
 
-    return (
-        <nav className="flex w-full items-center justify-between">
-			<Button variant="light" isIconOnly startContent={<ChevronLeft />} onClick={() => router.back()} />
-            <h3 className="justify-center text-2xl font-semibold">Lịch sử đặt hàng</h3>
+import { ChevronLeft } from "lucide-react";
+
+export const HistoryPaymentNav = ({ count }: { count: number }) => {
+	const router = useRouter();
+
+	return (
+		<nav className="flex w-full items-center justify-between">
+			<Button variant="light" isIconOnly startContent={<ChevronLeft />} onPress={() => router.back()} />
+			<h3 className="justify-center text-2xl font-semibold">Lịch sử đặt hàng ({count})</h3>
 			<span></span>
 		</nav>
-    );
-}
+	);
+};
