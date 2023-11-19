@@ -3,6 +3,7 @@
 import { api } from "@/utils/trpc/react";
 
 import { ThemeSwitcher } from "../ThemeSwitcher";
+import { SearchBar } from "../common/SearchBar";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -40,7 +41,10 @@ export const MainNavbar = () => {
 	const pathname = usePathname();
 	const { signOut } = useClerk();
 
-	const cart = api.cart.getCartItems.useQuery(undefined, { refetchOnReconnect: false, refetchOnWindowFocus: false });
+	const cart = api.cart.getCartItems.useQuery(undefined, {
+		refetchOnReconnect: false,
+		refetchOnWindowFocus: false,
+	});
 
 	const {
 		data: user,
@@ -62,14 +66,7 @@ export const MainNavbar = () => {
 
 			<NavbarContent justify="center">
 				<NavbarItem>
-					<Input
-						size="sm"
-						isClearable
-						type="text"
-						variant="bordered"
-						placeholder="Nhập từ khóa để tìm kiếm"
-						startContent={<Search />}
-					/>
+					<SearchBar />
 				</NavbarItem>
 			</NavbarContent>
 
