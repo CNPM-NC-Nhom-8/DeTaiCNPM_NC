@@ -16,9 +16,15 @@ export const generateMetadata = async (): Promise<Metadata> => {
 	return { title: "Cập nhật sản phẩm - Trang Admin" };
 };
 
-export default async function EditProductPage() {
+export default async function EditProductPage({ params: { id } }: { params: { id: string } }) {
 	const user = await getUser();
 	if (!user) return <ForbiddenPage />;
 
-	return <section className="flex w-full flex-col gap-2"></section>;
+	const HangSX = await api.common.getHangSX.query();
+
+	return (
+		<section className="flex w-full flex-col gap-2">
+			{/* <EditProduct initialHangSX={HangSX}></EditProduct> */}
+		</section>
+	);
 }

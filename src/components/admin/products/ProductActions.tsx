@@ -5,6 +5,8 @@ import { api } from "@/utils/trpc/react";
 
 import type { ProductType } from "./ProductTable";
 
+import Link from "next/link";
+
 import {
 	Button,
 	Dropdown,
@@ -20,7 +22,7 @@ import {
 	useDisclosure,
 } from "@nextui-org/react";
 
-import { MoreVertical, Pencil, XCircle } from "lucide-react";
+import { MoreVertical, Package, Pencil, XCircle } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
@@ -47,19 +49,30 @@ export const ProductActions = ({ product, refetch }: { product: ProductType; ref
 				</DropdownTrigger>
 				<DropdownMenu
 					itemClasses={{ description: "max-w-[200px]" }}
-					disabledKeys={(() => {
-						return [];
-					})()}
 					onAction={(e) => {
-						setActionType(e as typeof actionType);
-						onOpen();
+						const action = e as typeof actionType;
+
+						if (action === "Delete") {
+							setActionType(action);
+							onOpen();
+						}
 					}}
 				>
 					<DropdownSection showDivider title="Hành động">
 						<DropdownItem
 							key="Edit"
+							as={Link}
+							description="Chuyển qua trang sản phẩm"
+							href={`/phone/${product.TenSP}`}
+							startContent={<Package />}
+						>
+							Xem trang sản phẩm
+						</DropdownItem>
+						<DropdownItem
+							key="Edit"
+							as={Link}
 							description="Cập nhật thông tin về sản phẩm"
-							href="/admin/manage/products/edit"
+							href={`/admin/manage/products/edit/${product.MaSPM}`}
 							startContent={<Pencil />}
 						>
 							Cập nhật
@@ -68,7 +81,7 @@ export const ProductActions = ({ product, refetch }: { product: ProductType; ref
 					<DropdownSection title="Vùng nguy hiểm">
 						<DropdownItem
 							key="Delete"
-							description="Xóa sản phẩm dùng này"
+							description="Xóa sản phẩm này"
 							className="text-danger"
 							color="danger"
 							startContent={<XCircle />}
@@ -82,35 +95,31 @@ export const ProductActions = ({ product, refetch }: { product: ProductType; ref
 			{actionType && (
 				<Modal isOpen={isOpen} onOpenChange={onOpenChange}>
 					<ModalContent>
-						<form
-							onSubmit={(e) => {
-								e.preventDefault();
+						<ModalHeader className="flex flex-col gap-1">Xóa sản phẩm {product.TenSP}</ModalHeader>
 
-								switch (actionType) {
+						<ModalBody>
+							<p>
+								<span className="text-xl text-danger-600">Lưu ý:</span> Đây là 1 hành động không để đảo
+								ngược, vui lòng xem xét kỹ trước khi xác nhận xóa!
+							</p>
+						</ModalBody>
+
+						<ModalFooter>
+							<Button color="primary" variant="light" onPress={onClose}>
+								Đóng
+							</Button>
+
+							<Button
+								type="submit"
+								color="danger"
+								isLoading={productActions.isLoading}
+								onPress={() =>
+									productActions.mutate({ maSPM: product.MaSPM, data: { type: "Delete" } })
 								}
-							}}
-						>
-							<ModalHeader className="flex flex-col gap-1">{/* TODO: Update this */}</ModalHeader>
-
-							<ModalBody>{/* TODO: Update this */}</ModalBody>
-
-							<ModalFooter>
-								<Button
-									color={cn<"danger" | "primary">({
-										primary: ["Delete", "Ban"].includes(actionType),
-										danger: ["Edit", "Unban"].includes(actionType),
-									})}
-									variant="light"
-									onPress={onClose}
-								>
-									Đóng
-								</Button>
-
-								<Button type="submit" isLoading={productActions.isLoading}>
-									{/* TODO: Update this */}
-								</Button>
-							</ModalFooter>
-						</form>
+							>
+								Xóa
+							</Button>
+						</ModalFooter>
 					</ModalContent>
 				</Modal>
 			)}

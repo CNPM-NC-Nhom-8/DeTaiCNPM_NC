@@ -1,9 +1,11 @@
+import type { States } from "@/components/admin/products/manage/data";
 import { env } from "@/env.mjs";
+import { ObjectKeys } from "@/utils/common";
 
 import { adminProcedure, createTRPCRouter } from "../trpc";
 
 import { clerkClient } from "@clerk/nextjs";
-import type { Prisma, Role } from "@prisma/client";
+import type { Prisma, Role, ThongSoKyThuat } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 
 import z from "zod";
@@ -296,14 +298,14 @@ export const adminRouter = createTRPCRouter({
 								...(input.query.type === "Search-ID"
 									? { MaTaiKhoan: { contains: trimedValue, mode: "insensitive" } }
 									: input.query.type === "Search-Email"
-									? { Email: { contains: trimedValue, mode: "insensitive" } }
-									: input.query.type === "Search-Name"
-									? { TenTaiKhoan: { contains: trimedValue, mode: "insensitive" } }
-									: {
-											SDT: nullPhoneNumbers.includes(trimedValue)
-												? null
-												: { contains: trimedValue, mode: "insensitive" },
-									  }),
+									  ? { Email: { contains: trimedValue, mode: "insensitive" } }
+									  : input.query.type === "Search-Name"
+									    ? { TenTaiKhoan: { contains: trimedValue, mode: "insensitive" } }
+									    : {
+													SDT: nullPhoneNumbers.includes(trimedValue)
+														? null
+														: { contains: trimedValue, mode: "insensitive" },
+									      }),
 						  }
 						: {},
 				],
@@ -359,8 +361,8 @@ export const adminRouter = createTRPCRouter({
 								...(input.query.type === "Search-ID"
 									? { MaSPM: { contains: trimedValue, mode: "insensitive" } }
 									: input.query.type === "Search-Name"
-									? { TenSP: { contains: trimedValue, mode: "insensitive" } }
-									: {}),
+									  ? { TenSP: { contains: trimedValue, mode: "insensitive" } }
+									  : {}),
 						  }
 						: {},
 				],
@@ -416,5 +418,48 @@ export const adminRouter = createTRPCRouter({
 					break;
 				}
 			}
+		}),
+
+	addProduct: adminProcedure
+		.input(z.custom<Omit<States, "files">>().and(z.object({ files: z.array(z.object({ path: z.string() })) })))
+		.mutation(async ({ ctx, input }) => {
+			const sanPhamBienThe = ObjectKeys(input.types)
+				.map((key) => {
+					const data = input.types[key]!;
+
+					return ObjectKeys(data).map((color) => {
+						const colorData = data[color]!;
+						return { DungLuong: key, Mau: color, Gia: colorData.price };
+					});
+				})
+				.flat();
+
+			const data = await ctx.db.sanPhamMau.create({
+				data: {
+					AnhBia: input.files.at(0)!.path,
+					FAQ: {
+						createMany: {
+							data: input.faq.map(({ answer, question }) => ({ CauHoi: question, TraLoi: answer })),
+						},
+					},
+					HinhAnh: { createMany: { data: input.files.map(({ path }) => ({ TenHinh: "", Url: path })) } },
+					HSX: { connect: { MaHSX: "97a09152-c808-47e1-bbdb-33f120b1b29d" } },
+					TenSP: input.name,
+					MoTa: "Trả góp 12 tháng 0 lãi, 0đ trả trước qua Samsung Finance+ và 1 km khác.",
+					DacDiem: input.features,
+					SanPhamBienThe: { createMany: { data: sanPhamBienThe, skipDuplicates: true } },
+					ThongSoKyThuat: { create: input.details as ThongSoKyThuat },
+				},
+				include: { SanPhamBienThe: true },
+			});
+
+			await ctx.db.matHang.createMany({
+				data: data.SanPhamBienThe.map((SP) => ({
+					MaSP: SP.MaSP,
+					NgayNhap: new Date(),
+					TonKho: input.types[SP.DungLuong]![SP.Mau]!.quanlity,
+				})),
+				skipDuplicates: true,
+			});
 		}),
 });

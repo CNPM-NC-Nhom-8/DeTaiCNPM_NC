@@ -1,3 +1,4 @@
+import { CreateProduct } from "@/components/admin/products/manage/CreateProduct";
 import { ForbiddenPage } from "@/components/common/Page403";
 import { api } from "@/utils/trpc/server";
 
@@ -16,9 +17,15 @@ export const generateMetadata = async (): Promise<Metadata> => {
 	return { title: "Thêm sản phẩm - Trang Admin" };
 };
 
-export default async function CreateProductPage() {
+export default async function Page() {
 	const user = await getUser();
 	if (!user) return <ForbiddenPage />;
 
-	return <section className="flex w-full flex-col gap-2"></section>;
+	const HangSX = await api.common.getHangSX.query();
+
+	return (
+		<section className="flex w-full flex-col gap-2">
+			<CreateProduct hangSX={HangSX} />
+		</section>
+	);
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { moneyFormat } from "@/utils/common";
 import { api } from "@/utils/trpc/react";
 
 import Link from "next/link";
@@ -42,8 +43,6 @@ export const PhoneCard = ({ sanPhamMau }: ParamsType) => {
 		onError: ({ message }) => toast.error("Lỗi: " + message),
 	});
 
-	const moneyFormat = new Intl.NumberFormat("de-DE", { style: "currency", currency: "vnd" });
-
 	const { isLoaded, isSignedIn } = useUser();
 	const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
@@ -54,7 +53,11 @@ export const PhoneCard = ({ sanPhamMau }: ParamsType) => {
 			<Card as={"div"} isHoverable isPressable shadow="lg" className="relative px-2 py-4">
 				<Link href={"/phone/" + encodeURIComponent(sanPhamMau.TenSP)}>
 					<CardHeader className="aspect-square overflow-visible p-0">
-						<Image src={sanPhamMau.AnhBia} className="aspect-square w-full" />
+						<Image
+							src={sanPhamMau.AnhBia}
+							classNames={{ img: "aspect-square object-cover w-full" }}
+							alt={sanPhamMau.MoTa}
+						/>
 					</CardHeader>
 
 					<CardBody className="px-2 pb-0 pt-2">

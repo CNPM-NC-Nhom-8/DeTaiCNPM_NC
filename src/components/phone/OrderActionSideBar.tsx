@@ -13,7 +13,8 @@ import { Badge, Button, ButtonGroup, Card, CardHeader, Radio, RadioGroup, Spinne
 import type { Insurance } from "@prisma/client";
 
 import { CheckIcon, DollarSign, ShieldCheck, ShoppingCart } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import toast from "react-hot-toast";
 import z from "zod";
 
 export const OrderActionSideBar = ({ data }: { data: RouterOutputs["product"]["getSanPham"] }) => {
@@ -26,16 +27,20 @@ export const OrderActionSideBar = ({ data }: { data: RouterOutputs["product"]["g
 		[data.SanPhamBienThe],
 	);
 
-	const storageValidate = useMemo(() => {
-		return z
-			.string()
-			.nullish()
-			.transform((value) => {
-				return value && dungLuong.includes(value) ? value : dungLuong[0]!;
-			});
-	}, [dungLuong]);
+	const storageValidate = useCallback(
+		(query?: string | null) => {
+			return z
+				.string()
+				.nullish()
+				.transform((value) => {
+					return value && dungLuong.includes(value) ? value : dungLuong[0]!;
+				})
+				.parse(query);
+		},
+		[dungLuong],
+	);
 
-	const selectedStorage = storageValidate.parse(searchParams.get("storage"));
+	const selectedStorage = storageValidate(searchParams.get("storage"));
 
 	const mauSac = useMemo(
 		() =>
@@ -47,32 +52,46 @@ export const OrderActionSideBar = ({ data }: { data: RouterOutputs["product"]["g
 		[data.SanPhamBienThe, selectedStorage],
 	);
 
-	const colorValidate = useMemo(() => {
-		return z
-			.string()
-			.nullish()
-			.transform((value) => {
-				if (value && mauSac.includes(value)) return value;
+	const colorValidate = useCallback(
+		(query?: string | null) => {
+			return z
+				.string()
+				.nullish()
+				.transform((value) => {
+					const SP = data.SanPhamBienThe.find(
+						({ DungLuong, Mau }) => DungLuong === selectedStorage && Mau === value,
+					);
 
-				const defaultColor = mauSac[0]!;
-				const searchParams = new URLSearchParams();
+					if (value && mauSac.includes(value) && SP && SP.MatHang && SP.MatHang.TonKho > 0) return value;
 
-				searchParams.set("storage", selectedStorage);
-				searchParams.set("color", defaultColor);
+					const defaultColor = data.SanPhamBienThe.find(
+						({ DungLuong, MatHang }) => DungLuong === selectedStorage && (MatHang?.TonKho ?? 0) > 0,
+					);
 
-				router.replace(pathname + "?" + searchParams.toString());
+					const searchParams = new URLSearchParams();
 
-				return defaultColor;
-			});
-	}, [mauSac, selectedStorage]);
+					searchParams.set("storage", selectedStorage);
 
-	const selectedColor = colorValidate.parse(searchParams.get("color"));
+					if (defaultColor) searchParams.set("color", defaultColor.Mau);
+					else searchParams.delete("color");
+
+					router.replace(pathname + "?" + searchParams.toString());
+
+					return defaultColor?.Mau;
+				})
+				.parse(query);
+		},
+		[data.SanPhamBienThe, mauSac, selectedStorage],
+	);
+
+	const selectedColor = colorValidate(searchParams.get("color"));
 
 	const [selectedInsurance, setInsurance] = useState<Insurance>("None");
 
-	const trpcContext = api.useUtils();
+	const apiUtils = api.useUtils();
 	const themVaoGioHang = api.cart.addItemIntoCart.useMutation({
-		onSuccess: async () => await trpcContext.cart.getCartItems.refetch(),
+		onSuccess: async () => await apiUtils.cart.getCartItems.refetch(),
+		onError: ({ message }) => toast.error("Lỗi: " + message),
 	});
 
 	return (
@@ -97,7 +116,7 @@ export const OrderActionSideBar = ({ data }: { data: RouterOutputs["product"]["g
 								<Card
 									className={cn(
 										"w-full cursor-pointer gap-1 border-2 border-transparent py-2 text-center text-sm",
-										{ "border-success-500": selectedStorage === item },
+										{ "border-success": selectedStorage === item },
 									)}
 								>
 									<span className="font-semibold">{item}</span>
@@ -113,17 +132,17 @@ export const OrderActionSideBar = ({ data }: { data: RouterOutputs["product"]["g
 
 				{mauSac.map((item) => {
 					const SP = data.SanPhamBienThe.find(
-						({ DungLuong, Mau }) => DungLuong === selectedStorage && Mau === selectedColor,
+						({ DungLuong, Mau }) => DungLuong === selectedStorage && Mau === item,
 					)!;
 
 					return (
-						<>
-							<Badge
-								key={[item, SP.MaSP].join("-")}
-								content={<CheckIcon size={16} />}
-								isInvisible={selectedColor !== item}
-								className="bg-success-500 text-success-foreground"
-							>
+						<Badge
+							key={[item, SP.MaSP].join("-")}
+							content={<CheckIcon size={16} />}
+							isInvisible={selectedColor !== item}
+							className="bg-success text-success-foreground"
+						>
+							{SP.MatHang!.TonKho > 0 && (
 								<Link
 									className="contents"
 									href={{ pathname, query: { storage: selectedStorage, color: item } }}
@@ -131,25 +150,59 @@ export const OrderActionSideBar = ({ data }: { data: RouterOutputs["product"]["g
 									<Card
 										className={cn(
 											"w-full cursor-pointer gap-2 border-2 border-transparent px-4 py-2 text-center text-sm",
-											{ "border-success-500": selectedColor === item },
+											{ "border-success": selectedColor === item },
 										)}
 									>
-										<div className="flex items-center gap-2">
+										<div className="flex items-center">
 											<span className="flex-grow font-semibold">{item}</span>
 										</div>
 
 										<span>{moneyFormat.format(SP.Gia)}</span>
 									</Card>
 								</Link>
-							</Badge>
-						</>
+							)}
+
+							{SP.MatHang!.TonKho <= 0 && (
+								<Card
+									className={cn(
+										"w-full cursor-not-allowed gap-2 border-2 border-white/20 bg-white/10 px-4 py-2 text-center text-sm text-gray",
+									)}
+								>
+									<div className="flex items-center">
+										<span className="flex-grow font-semibold">{item}</span>
+									</div>
+
+									<span>{moneyFormat.format(SP.Gia)}</span>
+								</Card>
+							)}
+						</Badge>
 					);
 				})}
 			</section>
 
 			<section className="flex flex-col gap-2">
 				<ButtonGroup className="w-full">
-					<Button color="success" size="lg" startContent={<DollarSign size={20} />} className="w-2/3 text-lg">
+					<Button
+						size="lg"
+						color="success"
+						className="w-2/3 text-lg"
+						isLoading={themVaoGioHang.isLoading}
+						startContent={<DollarSign size={20} />}
+						onPress={async () => {
+							const SP = data.SanPhamBienThe.find(
+								({ DungLuong, Mau }) => DungLuong === selectedStorage && Mau === selectedColor,
+							)!;
+
+							await themVaoGioHang
+								.mutateAsync({
+									maSP: SP.MaSP,
+									quanlity: 1,
+									type: selectedInsurance,
+								})
+								.then(() => router.push("/cart"))
+								.catch(console.error);
+						}}
+					>
 						Mua ngay
 					</Button>
 

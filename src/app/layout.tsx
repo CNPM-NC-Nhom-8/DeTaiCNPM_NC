@@ -1,5 +1,5 @@
 import { BottomFooter } from "@/components/layout/BottomFooter";
-import { MainLayout } from "@/components/layout/MainLayout";
+import { MainLayout, PostHogPageview } from "@/components/layout/MainLayout";
 import { MainNavbar } from "@/components/layout/MainNavbar";
 import { cn } from "@/utils/common";
 
@@ -13,9 +13,13 @@ import { viVN } from "@clerk/localizations";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Analytics } from "@vercel/analytics/react";
 
+import { Suspense } from "react";
 import { Toaster } from "react-hot-toast";
 
 const inter = Inter({ subsets: ["latin"] });
+
+export const dynamic = "force-dynamic",
+	fetchCache = "default-no-store";
 
 export const metadata: Metadata = {
 	title: {
@@ -40,6 +44,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 		<ClerkProvider localization={viVN}>
 			<html lang="en">
 				<body className={cn(inter.className, "antialiased")}>
+					<Suspense>
+						<PostHogPageview />
+					</Suspense>
+
 					<MainLayout headers={headers()}>
 						<MainNavbar />
 						{children}

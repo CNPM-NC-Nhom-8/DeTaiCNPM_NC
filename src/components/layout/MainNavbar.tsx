@@ -23,7 +23,18 @@ import {
 	NavbarItem,
 } from "@nextui-org/react";
 
-import { LogIn, LogOut, PackageSearch, Search, ShieldBan, ShoppingCart, UserCog, Users } from "lucide-react";
+import {
+	History,
+	LogIn,
+	LogOut,
+	PackageSearch,
+	Search,
+	ShieldBan,
+	ShoppingCart,
+	User2,
+	UserCog,
+	Users,
+} from "lucide-react";
 
 export const MainNavbar = () => {
 	const pathname = usePathname();
@@ -133,7 +144,7 @@ export const MainNavbar = () => {
 								)}
 
 								<DropdownSection title="Cài đặt">
-									<DropdownItem key="account" startContent={<UserCog size={16} />}>
+									<DropdownItem key="account" startContent={<User2 size={16} />}>
 										<Link className="block w-full" href="/auth/account">
 											Cài đặt tài khoản
 										</Link>
@@ -142,6 +153,12 @@ export const MainNavbar = () => {
 									<DropdownItem key="user" startContent={<UserCog size={16} />}>
 										<Link className="block w-full" href="/auth/account/user">
 											Cài đặt người dùng
+										</Link>
+									</DropdownItem>
+
+									<DropdownItem key="" startContent={<History size={16} />}>
+										<Link className="block w-full" href="/auth/account/history/payment">
+											Lịch sử đơn hàng
 										</Link>
 									</DropdownItem>
 								</DropdownSection>

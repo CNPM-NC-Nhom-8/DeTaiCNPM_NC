@@ -9,16 +9,18 @@ import { InsuranceTypeOptions } from "../phone/data";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import { Button, Card, CardBody, Image, Select, SelectItem } from "@nextui-org/react";
+import { Button, ButtonGroup, Card, CardBody, Image, Select, SelectItem } from "@nextui-org/react";
 
-import { Trash2 } from "lucide-react";
+import { Minus, Plus, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 export const CartItem = ({ item }: { item: RouterOutputs["cart"]["getCartItems"][number] }) => {
+	const insuranceType = InsuranceTypeOptions.find(({ type }) => type === item.InsuranceType);
+
 	const router = useRouter();
 	const apiUtils = api.useUtils();
 
-	const removeItem = api.cart.updateCartItem.useMutation({
+	const updateitems = api.cart.updateCartItem.useMutation({
 		onSuccess: async () => {
 			await apiUtils.cart.getCartItems.refetch();
 			router.refresh();
@@ -48,43 +50,81 @@ export const CartItem = ({ item }: { item: RouterOutputs["cart"]["getCartItems"]
 								</span>
 							</div>
 
-							<span className="text-danger">{moneyFormat.format(item.SanPham.Gia)}</span>
+							<div className="text-danger">
+								<span>{moneyFormat.format(item.SanPham.Gia * item.Quantity)}</span>
+
+								{insuranceType && insuranceType.type !== "None" && (
+									<span className="text-small"> + {moneyFormat.format(insuranceType.price)}</span>
+								)}
+							</div>
 						</div>
 					</Link>
 
 					<div className="relative flex flex-grow flex-col items-end gap-2">
 						<Button
 							isIconOnly
-							startContent={removeItem.isLoading ? undefined : <Trash2 size={16} />}
-							isLoading={removeItem.isLoading}
+							startContent={updateitems.isLoading ? undefined : <Trash2 size={16} />}
+							isLoading={updateitems.isLoading}
 							size="sm"
 							color="danger"
 							variant="flat"
-							onPress={() => removeItem.mutate({ MaCartItem: item.MaCartItem, data: { type: "delete" } })}
+							onPress={() =>
+								updateitems.mutate({ MaCartItem: item.MaCartItem, data: { type: "delete" } })
+							}
 						/>
 
-						<span>Số lượng: {item.Quantity}</span>
+						<ButtonGroup>
+							<Button
+								size="sm"
+								isIconOnly
+								onPress={() =>
+									updateitems.mutate({
+										MaCartItem: item.MaCartItem,
+										data: { type: "quanlity", option: "decrease" },
+									})
+								}
+							>
+								<Minus size={16} />
+							</Button>
+							<Button size="sm" isIconOnly disableAnimation>
+								{item.Quantity}
+							</Button>
+							<Button
+								size="sm"
+								isIconOnly
+								onPress={() =>
+									updateitems.mutate({
+										MaCartItem: item.MaCartItem,
+										data: { type: "quanlity", option: "increase" },
+									})
+								}
+							>
+								<Plus size={16} />
+							</Button>
+						</ButtonGroup>
+						<Button size="sm">Tồn kho: {item.SanPham.MatHang?.TonKho}</Button>
 					</div>
 				</section>
 
 				<section>
 					<Select
 						size="sm"
+						disallowEmptySelection
 						items={[...InsuranceTypeOptions, { price: 0, type: "None", description: "Không có" }]}
 						defaultSelectedKeys={[item.InsuranceType]}
-						onChange={(e) =>
-							removeItem.mutate({
+						onChange={(e) => {
+							updateitems.mutate({
 								MaCartItem: item.MaCartItem,
 								data: {
 									type: "update",
 									insuranceType: e.target.value as (typeof InsuranceTypeOptions)[number]["type"],
 								},
-							})
-						}
+							});
+						}}
 					>
 						{(item) => (
 							<SelectItem key={item.type} description={item.description.split(": ")[1]}>
-								{item.description.split(": ")[0]}
+								{item.description.split(": ")[0] + " - " + moneyFormat.format(item.price)}
 							</SelectItem>
 						)}
 					</Select>

@@ -3,6 +3,8 @@ import { api } from "@/utils/trpc/server";
 
 import type { Metadata } from "next";
 
+import { Card } from "@nextui-org/react";
+
 import { cache } from "react";
 
 const getUser = cache(async () => {
@@ -20,5 +22,5 @@ export default async function Page() {
 	const user = await getUser();
 	if (!user) return <ForbiddenPage />;
 
-	return <main></main>;
+	return <main className="container flex max-w-6xl flex-grow flex-col gap-6 px-6 py-4"></main>;
 }

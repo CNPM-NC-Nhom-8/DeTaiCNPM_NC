@@ -12,7 +12,6 @@ import type { Metadata } from "next";
 
 type PropsType = {
 	params: { phone: string };
-	
 };
 
 export const generateMetadata = async ({ params: { phone: encodePhone } }: PropsType): Promise<Metadata> => {

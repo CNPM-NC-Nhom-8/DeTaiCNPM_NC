@@ -1,5 +1,7 @@
 import { Divider, Link, User } from "@nextui-org/react";
 
+import { Github } from "lucide-react";
+
 export const BottomFooter = () => {
 	return (
 		<footer className="container max-w-6xl flex-none py-4">
@@ -16,7 +18,7 @@ export const BottomFooter = () => {
 
 				<div className="flex flex-col gap-2 text-center">
 					<h3>Danh sách Devs</h3>
-					<div className="grid grid-cols-[1fr,max-content,1fr] place-items-start gap-y-2">
+					<div className="grid grid-cols-[1fr,max-content,1fr] place-items-start gap-x-4 gap-y-2">
 						<User
 							name="Phùng Tấn Phát"
 							description={
@@ -29,15 +31,39 @@ export const BottomFooter = () => {
 							}
 							avatarProps={{ src: "https://avatars.githubusercontent.com/u/41738319?s=400&v=4" }}
 						/>
+
+						<Divider orientation="vertical" />
+
+						<User
+							name="Trang Sĩ Bân"
+							description={
+								<>
+									<span>Dev 2 - </span>
+									<Link underline="hover" href="https://github.com/Trangsiban27" size="sm" isExternal>
+										@Trangsiban27
+									</Link>
+								</>
+							}
+							avatarProps={{ src: "https://avatars.githubusercontent.com/u/96864485?v=4" }}
+						/>
 					</div>
 				</div>
 
 				<Divider orientation="vertical" className="mx-4" />
 
-				<div className="flex items-center justify-center text-center">
-					<span>
-						Địa chỉ: 10 QL22, Tân Xuân, Hóc Môn, <br /> Thành phố Hồ Chí Minh, Việt Nam
-					</span>
+				<div className="flex flex-col gap-2 text-center">
+					<h3>Link</h3>
+
+					<div className="flex items-center justify-center gap-2">
+						<Link
+							underline="hover"
+							href="https://github.com/CNPM-NC-Nhom-8/DeTaiCNPM_NC"
+							size="sm"
+							isExternal
+						>
+							<Github /> Github
+						</Link>
+					</div>
 				</div>
 			</div>
 
@@ -47,8 +73,8 @@ export const BottomFooter = () => {
 				Mọi thông tin và hình ảnh trên website đều được sưu tầm trên Internet. Chúng tôi không sở hữu hay chịu
 				trách nhiệm bất kỳ thông tin nào trên web này. Nếu làm ảnh hưởng đến cá nhân hay tổ chức nào, khi được
 				yêu cầu, chúng tôi sẽ xem xét và gỡ bỏ ngay lập tức.{" "}
-				<Link underline="hover" href="mailto:phungtanphat23@gmail.com" className="text-sm">
-					phungtanphat23@gmail.com
+				<Link underline="hover" isExternal href="mailto:phungtanphat23@gmail.com" className="text-sm">
+					Email
 				</Link>
 			</p>
 		</footer>
