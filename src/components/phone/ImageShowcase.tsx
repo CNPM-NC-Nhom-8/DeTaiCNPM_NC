@@ -32,16 +32,15 @@ export const PhoneImageShowcase = ({ images }: PropsParams) => {
 					style={{ translate: -Math.abs(images.indexOf(currentImage)) + "00%" }}
 				>
 					{images.map((item) => (
-						<div
+						<Image
 							key={item.MaHA}
-							className="flex min-w-full flex-shrink-0 flex-grow [&>div]:w-full [&>div]:!max-w-full"
-						>
-							<Image
-								src={item.Url}
-								alt=""
-								className="aspect-video w-full flex-shrink-0 flex-grow rounded-b-none rounded-t-lg object-scale-down object-center"
-							/>
-						</div>
+							src={item.Url}
+							alt=""
+							classNames={{
+								wrapper: "flex min-w-full flex-shrink-0 flex-grow",
+								img: "aspect-video w-full flex-shrink-0 flex-grow rounded-b-none rounded-t-lg object-scale-down object-center",
+							}}
+						/>
 					))}
 				</div>
 

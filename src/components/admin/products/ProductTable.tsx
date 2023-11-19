@@ -341,7 +341,7 @@ export const ProductTable = ({
 						<Image
 							src={product.AnhBia}
 							alt={product.TenSP}
-							className="aspect-square max-w-full"
+							classNames={{ img: "aspect-square max-w-full object-cover" }}
 							width="112"
 						/>
 

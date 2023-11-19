@@ -1,4 +1,3 @@
-import { EditProduct } from "@/components/admin/products/EditProduct";
 import { ForbiddenPage } from "@/components/common/Page403";
 import { api } from "@/utils/trpc/server";
 
@@ -21,11 +20,11 @@ export default async function EditProductPage({ params: { id } }: { params: { id
 	const user = await getUser();
 	if (!user) return <ForbiddenPage />;
 
-	const [HangSX] = await Promise.all([api.common.getHangSX.query()]);
+	const HangSX = await api.common.getHangSX.query();
 
 	return (
 		<section className="flex w-full flex-col gap-2">
-			<EditProduct initialHangSX={HangSX}></EditProduct>
+			{/* <EditProduct initialHangSX={HangSX}></EditProduct> */}
 		</section>
 	);
 }

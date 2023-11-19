@@ -12,7 +12,7 @@ export default authMiddleware({
 		"/phone/:path*",
 		"/api/trpc/:path*",
 		"/api/clerk/:path*",
-		"/api/test",
+		"/api/public/:path*",
 	],
 });
 
