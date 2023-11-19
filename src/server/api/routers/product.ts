@@ -2,6 +2,7 @@ import { exclude } from "@/utils/common";
 
 import { authProcedure, createTRPCRouter, publicProcedure } from "../trpc";
 
+import type { Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 
 import z from "zod";
@@ -70,5 +71,47 @@ export const productRouter = createTRPCRouter({
 			await ctx.db.sanPhamYeuThich.create({
 				data: { MaSPM: input.maSPM, MaKhachHang: ctx.userId },
 			});
+		}),
+
+	searchProduct: publicProcedure
+		.input(
+			z.object({
+				pageNum: z.number().min(0, "Số trang phải lớn hơn 0"),
+				perPage: z.number().min(1, "Số lượng từng trang phải lớn hơn 1"),
+				query: z
+					.object({
+						value: z.string().optional(),
+						hangSX: z.string().optional(),
+					})
+					.optional(),
+			}),
+		)
+		.query(async ({ ctx, input }) => {
+			const trimValue = (input.query?.value ?? "").trim();
+
+			const search: Prisma.SanPhamMauWhereInput = {
+				AND: [
+					input.query?.value
+						? { OR: [{ TenSP: { contains: trimValue } }, { MoTa: { contains: trimValue } }] }
+						: {},
+					input.query?.hangSX ? { MaHSX: input.query.hangSX } : {},
+				],
+			};
+
+			const [newsCount, newsData] = await ctx.db.$transaction([
+				ctx.db.sanPhamMau.count({ where: search }),
+				ctx.db.sanPhamMau.findMany({
+					where: search,
+					include: {
+						HSX: true,
+						SanPhamBienThe: true,
+						_count: { select: { DanhGia: true } },
+					},
+					take: input.perPage,
+					skip: Math.abs(input.pageNum - 1) * input.perPage,
+				}),
+			]);
+
+			return { data: newsData, count: newsCount };
 		}),
 });
