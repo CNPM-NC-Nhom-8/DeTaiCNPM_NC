@@ -19,6 +19,7 @@ export const GET = async (req: Request) => {
 				HSX: true,
 				SanPhamBienThe: { include: { MatHang: true } },
 			},
+			orderBy: { SanPhamBienThe: { _count: "desc" }, NgayThem: "desc" },
 		})
 	).map((product) => {
 		const defaultProduct = product.SanPhamBienThe.sort((a, b) => a.Gia - b.Gia).at(0)!;
