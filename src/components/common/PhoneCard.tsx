@@ -77,11 +77,11 @@ export const PhoneCard = ({ sanPhamMau }: ParamsType) => {
 
 					<Tooltip content="Yêu thích sản phẩm" placement="bottom">
 						<Button
-							isLoading={!isLoaded || isLoading || yeuThich.isLoading}
+							isLoading={!isLoaded || isLoading || yeuThich.isPending}
 							size="sm"
 							className="w-full"
 							startContent={
-								!(!isLoaded || isLoading || yeuThich.isLoading) ? (
+								!(!isLoaded || isLoading || yeuThich.isPending) ? (
 									<Heart size={16} className={data ? "fill-red-600 stroke-red-600" : ""} />
 								) : undefined
 							}

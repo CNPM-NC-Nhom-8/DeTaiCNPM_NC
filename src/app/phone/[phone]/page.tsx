@@ -15,7 +15,7 @@ type PropsType = {
 };
 
 export const generateMetadata = async ({ params: { phone: encodePhone } }: PropsType): Promise<Metadata> => {
-	const sanPham = await api.product.getSanPham.query({ tenSP: encodePhone });
+	const sanPham = await api.product.getSanPham({ tenSP: encodePhone });
 
 	if (!sanPham) return { title: "Sản phẩm không tồn tại" };
 	return { title: sanPham.TenSP };
@@ -23,8 +23,8 @@ export const generateMetadata = async ({ params: { phone: encodePhone } }: Props
 
 export default async function Page({ params: { phone: encodePhone } }: PropsType) {
 	const [data, user] = await Promise.all([
-		api.product.getSanPham.query({ tenSP: encodePhone }),
-		api.common.getCurrentUser.query(),
+		api.product.getSanPham({ tenSP: encodePhone }),
+		api.common.getCurrentUser(),
 	]);
 
 	return (

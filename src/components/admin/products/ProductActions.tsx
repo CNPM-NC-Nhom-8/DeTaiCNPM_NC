@@ -112,7 +112,7 @@ export const ProductActions = ({ product, refetch }: { product: ProductType; ref
 							<Button
 								type="submit"
 								color="danger"
-								isLoading={productActions.isLoading}
+								isLoading={productActions.isPending}
 								onPress={() =>
 									productActions.mutate({ maSPM: product.MaSPM, data: { type: "Delete" } })
 								}

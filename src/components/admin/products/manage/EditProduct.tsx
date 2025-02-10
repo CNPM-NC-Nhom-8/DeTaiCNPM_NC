@@ -1,18 +1,13 @@
 "use client";
 
+import type { RouterOutputs } from "@/utils/trpc/react";
 import { api } from "@/utils/trpc/react";
-import type { RouterOutputs } from "@/utils/trpc/shared";
 
 import { Button, Card, CardBody, CardFooter, CardHeader, Input, Select, SelectItem } from "@nextui-org/react";
 
-import toast from "react-hot-toast";
-
 export const EditProduct = ({ initialHangSX }: { initialHangSX: RouterOutputs["common"]["getHangSX"] }) => {
-	const { data: HangSX, refetch: refetchHangSX } = api.common.getHangSX.useQuery(undefined, {
+	const { data: HangSX } = api.common.getHangSX.useQuery(undefined, {
 		initialData: initialHangSX,
-		refetchOnReconnect: false,
-		refetchOnWindowFocus: false,
-		onError: ({ message }) => toast.error("Lỗi: " + message),
 	});
 
 	return (
@@ -42,12 +37,7 @@ export const EditProduct = ({ initialHangSX }: { initialHangSX: RouterOutputs["c
 						id="anhbia"
 						type="file"
 						accept="image/"
-						className="block w-1/2 text-sm text-slate-500 
-                            file:mr-4 file:rounded-full file:border-0 file:bg-violet-50 
-                            file:px-4 file:py-2 file:text-sm
-                            file:font-semibold file:text-violet-700
-                            hover:file:bg-violet-100
-                        "
+						className="block w-1/2 text-sm text-slate-500 file:mr-4 file:rounded-full file:border-0 file:bg-violet-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-violet-700 hover:file:bg-violet-100"
 					/>
 				</div>
 

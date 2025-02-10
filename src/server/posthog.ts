@@ -1,5 +1,5 @@
 // app/posthog.js
-import { env } from "@/env.mjs";
+import { env } from "@/env";
 
 import { PostHog } from "posthog-node";
 

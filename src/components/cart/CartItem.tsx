@@ -2,7 +2,7 @@
 
 import { moneyFormat } from "@/utils/common";
 import { api } from "@/utils/trpc/react";
-import type { RouterOutputs } from "@/utils/trpc/shared";
+import type { RouterOutputs } from "@/utils/trpc/react";
 
 import { InsuranceTypeOptions } from "../phone/data";
 
@@ -63,8 +63,8 @@ export const CartItem = ({ item }: { item: RouterOutputs["cart"]["getCartItems"]
 					<div className="relative flex flex-grow flex-col items-end gap-2">
 						<Button
 							isIconOnly
-							startContent={updateitems.isLoading ? undefined : <Trash2 size={16} />}
-							isLoading={updateitems.isLoading}
+							startContent={updateitems.isPending ? undefined : <Trash2 size={16} />}
+							isLoading={updateitems.isPending}
 							size="sm"
 							color="danger"
 							variant="flat"

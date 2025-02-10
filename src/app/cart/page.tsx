@@ -10,7 +10,7 @@ import { Button } from "@nextui-org/react";
 import { ShoppingCart } from "lucide-react";
 
 export default async function Page() {
-	const cart = await api.cart.getCartItems.query();
+	const cart = await api.cart.getCartItems();
 
 	return (
 		<main className="container flex max-w-2xl flex-grow flex-col gap-4 px-6 pt-4">

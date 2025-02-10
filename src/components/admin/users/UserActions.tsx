@@ -178,7 +178,7 @@ export const UserActions = ({
 
 								<Button
 									type="submit"
-									isLoading={userActions.isLoading}
+									isLoading={userActions.isPending}
 									color={cn<"danger" | "warning">({
 										danger: ["Delete", "Ban"].includes(actionType),
 										warning: ["Edit", "Unban"].includes(actionType),

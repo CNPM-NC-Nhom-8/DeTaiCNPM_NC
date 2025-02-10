@@ -2,7 +2,7 @@
 
 import { moneyFormat } from "@/utils/common";
 import { api } from "@/utils/trpc/react";
-import type { RouterInputs, RouterOutputs } from "@/utils/trpc/shared";
+import type { RouterInputs, RouterOutputs } from "@/utils/trpc/react";
 
 import { InsuranceTypeOptions } from "../phone/data";
 
@@ -83,7 +83,7 @@ export const PaymentFooter = ({ cart }: { cart: RouterOutputs["cart"]["getCartIt
 								payment.mutate({ maCartItems: cart.map((item) => item.MaCartItem), paymentMethod })
 							}
 							color="success"
-							isLoading={payment.isLoading}
+							isLoading={payment.isPending}
 						>
 							Thanh toán ngay ({cart.length})
 						</Button>

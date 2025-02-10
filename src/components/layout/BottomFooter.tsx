@@ -1,8 +1,10 @@
+"use client";
+
 import { Divider, Link, User } from "@nextui-org/react";
 
 import { Github } from "lucide-react";
 
-export const BottomFooter = () => {
+export function BottomFooter() {
 	return (
 		<footer className="container max-w-6xl flex-none py-4">
 			<Divider orientation="horizontal" />
@@ -79,4 +81,4 @@ export const BottomFooter = () => {
 			</p>
 		</footer>
 	);
-};
+}

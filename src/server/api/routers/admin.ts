@@ -1,10 +1,10 @@
 import type { States } from "@/components/admin/products/manage/data";
-import { env } from "@/env.mjs";
+import { env } from "@/env";
 import { ObjectKeys } from "@/utils/common";
 
 import { adminProcedure, createTRPCRouter } from "../trpc";
 
-import { clerkClient } from "@clerk/nextjs";
+import { clerkClient } from "@clerk/nextjs/server";
 import type { Prisma, Role, ThongSoKyThuat } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 
@@ -215,7 +215,7 @@ export const adminRouter = createTRPCRouter({
 						});
 
 					await ctx.db.taiKhoan.delete({ where: { MaTaiKhoan: input.maTaiKhoan } });
-					await clerkClient.users.deleteUser(input.maTaiKhoan);
+					await ctx.clerkClient.users.deleteUser(input.maTaiKhoan);
 
 					break;
 				}
@@ -298,15 +298,15 @@ export const adminRouter = createTRPCRouter({
 								...(input.query.type === "Search-ID"
 									? { MaTaiKhoan: { contains: trimedValue, mode: "insensitive" } }
 									: input.query.type === "Search-Email"
-									  ? { Email: { contains: trimedValue, mode: "insensitive" } }
-									  : input.query.type === "Search-Name"
-									    ? { TenTaiKhoan: { contains: trimedValue, mode: "insensitive" } }
-									    : {
+										? { Email: { contains: trimedValue, mode: "insensitive" } }
+										: input.query.type === "Search-Name"
+											? { TenTaiKhoan: { contains: trimedValue, mode: "insensitive" } }
+											: {
 													SDT: nullPhoneNumbers.includes(trimedValue)
 														? null
 														: { contains: trimedValue, mode: "insensitive" },
-									      }),
-						  }
+												}),
+							}
 						: {},
 				],
 			};
@@ -361,9 +361,9 @@ export const adminRouter = createTRPCRouter({
 								...(input.query.type === "Search-ID"
 									? { MaSPM: { contains: trimedValue, mode: "insensitive" } }
 									: input.query.type === "Search-Name"
-									  ? { TenSP: { contains: trimedValue, mode: "insensitive" } }
-									  : {}),
-						  }
+										? { TenSP: { contains: trimedValue, mode: "insensitive" } }
+										: {}),
+							}
 						: {},
 				],
 			};

@@ -52,8 +52,8 @@ export const productRouter = createTRPCRouter({
 	}),
 
 	checkThichSP: publicProcedure.input(z.object({ maSPM: z.string() })).query(async ({ ctx, input }) => {
-		if (!ctx.userId) return false;
-		return !!(await ctx.db.sanPhamYeuThich.count({ where: { MaKhachHang: ctx.userId, MaSPM: input.maSPM } }));
+		if (!ctx.user.userId) return false;
+		return !!(await ctx.db.sanPhamYeuThich.count({ where: { MaKhachHang: ctx.user.userId, MaSPM: input.maSPM } }));
 	}),
 
 	yeuThich: authProcedure
@@ -62,14 +62,14 @@ export const productRouter = createTRPCRouter({
 			// đã yêu thích => bỏ yêu thích
 			if (input.isFavored) {
 				await ctx.db.sanPhamYeuThich.delete({
-					where: { MaSPM_MaKhachHang: { MaSPM: input.maSPM, MaKhachHang: ctx.userId } },
+					where: { MaSPM_MaKhachHang: { MaSPM: input.maSPM, MaKhachHang: ctx.user.userId } },
 				});
 				return;
 			}
 
 			// Chưa Yêu thích => Yêu Thích
 			await ctx.db.sanPhamYeuThich.create({
-				data: { MaSPM: input.maSPM, MaKhachHang: ctx.userId },
+				data: { MaSPM: input.maSPM, MaKhachHang: ctx.user.userId },
 			});
 		}),
 

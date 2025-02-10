@@ -1,6 +1,6 @@
 "use client";
 
-import type { RouterOutputs } from "@/utils/trpc/shared";
+import type { RouterOutputs } from "@/utils/trpc/react";
 
 import { Accordion, AccordionItem, Card, CardHeader } from "@nextui-org/react";
 

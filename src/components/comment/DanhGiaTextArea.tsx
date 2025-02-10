@@ -1,7 +1,7 @@
 "use client";
 
 import { api } from "@/utils/trpc/react";
-import type { RouterOutputs } from "@/utils/trpc/shared";
+import type { RouterOutputs } from "@/utils/trpc/react";
 
 import { Button, Input, Textarea, User } from "@nextui-org/react";
 
@@ -18,12 +18,12 @@ type ParamsType = {
 
 export const DanhGiaTextArea = ({ maSPM, maTraLoi, user, refetch }: ParamsType) => {
 	const [noiDung, setNoiDung] = useState("");
-	const [tenKhachHang, setTenKH] = useState(user ? user.TenTaiKhoan ?? (user.Ho + " " + user.Ten).trim() : "");
+	const [tenKhachHang, setTenKH] = useState(user ? (user.TenTaiKhoan ?? (user.Ho + " " + user.Ten).trim()) : "");
 
 	const danhGia = api.danhGia.danhGiaBanTin.useMutation({
 		onSuccess: async () => {
 			setNoiDung("");
-			setTenKH(user ? user.TenTaiKhoan ?? (user.Ho + " " + user.Ten).trim() : "");
+			setTenKH(user ? (user.TenTaiKhoan ?? (user.Ho + " " + user.Ten).trim()) : "");
 
 			await refetch();
 		},
@@ -76,8 +76,8 @@ export const DanhGiaTextArea = ({ maSPM, maTraLoi, user, refetch }: ParamsType) 
 
 				<Button
 					isIconOnly
-					isLoading={danhGia.isLoading}
-					endContent={danhGia.isLoading ? undefined : <SendHorizontal size={20} />}
+					isLoading={danhGia.isPending}
+					endContent={danhGia.isPending ? undefined : <SendHorizontal size={20} />}
 					color="primary"
 					onClick={() => {
 						danhGia.mutate({

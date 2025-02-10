@@ -1,5 +1,5 @@
 import { moneyFormat } from "@/utils/common";
-import type { RouterOutputs } from "@/utils/trpc/shared";
+import type { RouterOutputs } from "@/utils/trpc/react";
 
 import { InsuranceTypeOptions } from "../phone/data";
 
@@ -40,8 +40,8 @@ export const HistoryPaymentTable = ({ data }: { data: RouterOutputs["taiKhoan"][
 										Bảo hiểm:{" "}
 										{insuranceType
 											? insuranceType.description.split(": ").at(0) +
-											  " + " +
-											  moneyFormat.format(insuranceType.price)
+												" + " +
+												moneyFormat.format(insuranceType.price)
 											: "Không có"}
 									</span>
 								</div>

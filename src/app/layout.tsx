@@ -48,7 +48,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 						<PostHogPageview />
 					</Suspense>
 
-					<MainLayout headers={headers()}>
+					<MainLayout>
 						<MainNavbar />
 						{children}
 						<BottomFooter />

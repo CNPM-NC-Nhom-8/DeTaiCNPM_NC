@@ -1,6 +1,4 @@
-import { env } from "@/env.mjs";
-import PostHogClient from "@/server/posthog";
-import { api } from "@/utils/trpc/server";
+import { env } from "@/env";
 
 import { NextResponse } from "next/server";
 
@@ -8,13 +6,6 @@ import path from "path";
 import { v4 } from "uuid";
 
 export const POST = async (req: Request) => {
-	const user = await api.common.getCurrentUser.query({ allowedRoles: ["NhanVien", "QuanTriVien"] });
-	if (!user) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-
-	const posthog = PostHogClient();
-	posthog.capture({ distinctId: user.MaTaiKhoan, event: "Upload image" });
-	await posthog.shutdownAsync();
-
 	const data = await req.formData();
 	const files = data.getAll("file") as File[];
 
@@ -28,7 +19,7 @@ export const POST = async (req: Request) => {
 
 		const { ext } = path.parse(file.name);
 
-		const res = await fetch(env.SUPABASE_URL + "/storage/v1/object/Images/" + v4() + ext, {
+		const res = await fetch("https://ciuknuwpoenunhtkijcv.supabase.co/storage/v1/object/Images/" + v4() + ext, {
 			body: reqData,
 			method: "POST",
 			headers: { Authorization: "Bearer " + env.SUPABASE_KEY },
@@ -44,7 +35,7 @@ export const POST = async (req: Request) => {
 	}
 	return NextResponse.json(
 		successFilePaths.map((file) => ({
-			path: env.SUPABASE_URL + "/storage/v1/object/public/" + file,
+			path: "https://ciuknuwpoenunhtkijcv.supabase.co/storage/v1/object/public/" + file,
 		})),
 	);
 };

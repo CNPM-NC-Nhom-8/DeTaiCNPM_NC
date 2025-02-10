@@ -3,12 +3,10 @@ import { api } from "@/utils/trpc/server";
 
 import type { Metadata } from "next";
 
-import { Card } from "@nextui-org/react";
-
 import { cache } from "react";
 
 const getUser = cache(async () => {
-	return await api.common.getCurrentUser.query({ allowedRoles: ["NhanVien", "QuanTriVien"] });
+	return await api.common.getCurrentUser({ allowedRoles: ["NhanVien", "QuanTriVien"] });
 });
 
 export const generateMetadata = async (): Promise<Metadata> => {

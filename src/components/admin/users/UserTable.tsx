@@ -2,7 +2,7 @@
 
 import { ObjectKeys, cn, dayjs } from "@/utils/common";
 import { api } from "@/utils/trpc/react";
-import type { RouterInputs, RouterOutputs } from "@/utils/trpc/shared";
+import type { RouterInputs, RouterOutputs } from "@/utils/trpc/react";
 
 import { TablePagination } from "../Pagination";
 import { LoaiKHActions } from "./LoaiKHActions";
@@ -113,23 +113,11 @@ export const UserTable = ({
 				value: queryData.value,
 			},
 		},
-		{
-			initialData: initialUsers,
-			refetchOnReconnect: false,
-			refetchOnWindowFocus: false,
-			onError: ({ message }) => toast.error("Lỗi: " + message),
-			onSuccess: () => {
-				const totalPages = Math.ceil(users.count / rowsPerPage);
-				if (page > totalPages) setPage(totalPages);
-			},
-		},
+		{ initialData: initialUsers },
 	);
 
 	const { data: LoaiKH, refetch: refetchLoaiKH } = api.common.getLoaiKH.useQuery(undefined, {
 		initialData: initialLoaiKH,
-		refetchOnReconnect: false,
-		refetchOnWindowFocus: false,
-		onError: ({ message }) => toast.error("Lỗi: " + message),
 	});
 
 	const [visibleColumns, setVisibleColumns] = useState<Selection>(new Set(INITIAL_VISIBLE_COLUMNS));

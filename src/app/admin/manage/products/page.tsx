@@ -7,7 +7,7 @@ import type { Metadata } from "next";
 import { cache } from "react";
 
 const getUser = cache(async () => {
-	return await api.common.getCurrentUser.query({ allowedRoles: ["NhanVien", "QuanTriVien"] });
+	return await api.common.getCurrentUser({ allowedRoles: ["NhanVien", "QuanTriVien"] });
 });
 
 export const generateMetadata = async (): Promise<Metadata> => {
@@ -22,8 +22,8 @@ export default async function ProductManagePage() {
 	if (!user) return <ForbiddenPage />;
 
 	const [productData, HangSX] = await Promise.all([
-		api.admin.getProducts.query({ page: 1, perPage: 6 }),
-		api.common.getHangSX.query(),
+		api.admin.getProducts({ page: 1, perPage: 6 }),
+		api.common.getHangSX(),
 	]);
 
 	return (

@@ -1,18 +1,18 @@
 "use client";
 
 import { cn } from "@/utils/common";
+import type { RouterOutputs } from "@/utils/trpc/react";
 import { api } from "@/utils/trpc/react";
-import type { RouterOutputs } from "@/utils/trpc/shared";
 
 import { PhoneCard } from "../common/PhoneCard";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { Button, Divider, Input, Pagination, Select, SelectItem, Spinner } from "@nextui-org/react";
+import { keepPreviousData } from "@tanstack/react-query";
 
 import { SearchX } from "lucide-react";
-import { type ChangeEvent, Fragment, useCallback, useState } from "react";
-import toast from "react-hot-toast";
+import { type ChangeEvent, Fragment, useCallback, useEffect, useState } from "react";
 import type { ClassNameValue } from "tailwind-merge";
 
 const perPage = [20, 40, 60, 80, 100] as const;
@@ -41,24 +41,22 @@ export const SearchContent = ({
 	const [page, setPage] = useState(Number(searchParams.get("page") ?? "1"));
 	const [rowsPerPage, setRowPerPage] = useState<(typeof perPage)[number]>(20);
 
-	const { data: searchData, isRefetching } = api.product.searchProduct.useQuery(
-		{
-			pageNum: page,
-			perPage: rowsPerPage,
-			query: searchQuery,
-		},
-		{
-			initialData,
-			keepPreviousData: true,
-			refetchOnMount: false,
-			refetchOnWindowFocus: false,
-			onError: ({ message }) => toast.error("Lỗi: " + message),
-			onSuccess: () => {
-				const totalPages = Math.ceil(searchData.count / rowsPerPage);
-				if (page > totalPages) setPage(totalPages);
-			},
-		},
+	const {
+		data: searchData,
+		isRefetching,
+		isSuccess,
+	} = api.product.searchProduct.useQuery(
+		{ pageNum: page, perPage: rowsPerPage, query: searchQuery },
+		{ initialData, placeholderData: keepPreviousData },
 	);
+
+	useEffect(() => {
+		if (isSuccess) {
+			const totalPages = Math.ceil(searchData.count / rowsPerPage);
+			if (page > totalPages) setPage(totalPages);
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [isSuccess]);
 
 	const pages = Math.ceil(searchData.count / rowsPerPage);
 

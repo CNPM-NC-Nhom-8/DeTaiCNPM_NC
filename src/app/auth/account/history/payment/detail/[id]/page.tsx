@@ -11,7 +11,7 @@ import { Card, CardBody, CardFooter, Image, Tooltip } from "@nextui-org/react";
 import { cache } from "react";
 
 const getData = cache(async ({ id }: { id: string }) => {
-	return await api.taiKhoan.getPaymentDetails.query({ MaDonHang: id });
+	return await api.taiKhoan.getPaymentDetails({ MaDonHang: id });
 });
 
 export const generateMetadata = async ({ params: { id } }: { params: { id: string } }): Promise<Metadata> => {
@@ -60,8 +60,8 @@ export default async function Page({ params: { id } }: { params: { id: string } 
 										Bảo hiểm:{" "}
 										{insuranceType
 											? insuranceType.description.split(": ").at(0) +
-											  " + " +
-											  moneyFormat.format(insuranceType.price)
+												" + " +
+												moneyFormat.format(insuranceType.price)
 											: "Không có"}
 									</span>
 								</div>

@@ -7,7 +7,7 @@ import type { Metadata } from "next";
 import { cache } from "react";
 
 const getUser = cache(async () => {
-	return await api.common.getCurrentUser.query({ allowedRoles: ["NhanVien", "QuanTriVien"] });
+	return await api.common.getCurrentUser({ allowedRoles: ["NhanVien", "QuanTriVien"] });
 });
 
 export const generateMetadata = async (): Promise<Metadata> => {
@@ -21,7 +21,7 @@ export default async function Page() {
 	const user = await getUser();
 	if (!user) return <ForbiddenPage />;
 
-	const HangSX = await api.common.getHangSX.query();
+	const HangSX = await api.common.getHangSX();
 
 	return (
 		<section className="flex w-full flex-col gap-2">

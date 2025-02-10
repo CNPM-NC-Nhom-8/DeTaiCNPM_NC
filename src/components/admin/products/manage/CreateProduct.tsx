@@ -7,7 +7,7 @@ import { detailsKeys, useProductData } from "@/components/admin/products/manage/
 import { PhoneDetailInfo } from "@/components/phone/PhoneDetailInfo";
 import { ThongSoKeyVietnamese } from "@/utils/common";
 import { api } from "@/utils/trpc/react";
-import type { RouterOutputs } from "@/utils/trpc/shared";
+import type { RouterOutputs } from "@/utils/trpc/react";
 
 import { Button, Card, CardBody, Divider, Input, type PropsOf, Select, SelectItem, Textarea } from "@nextui-org/react";
 
@@ -127,7 +127,7 @@ export const CreateProduct = ({ hangSX }: { hangSX: RouterOutputs["common"]["get
 				<Button
 					fullWidth
 					color="success"
-					isLoading={addProduct.isLoading}
+					isLoading={addProduct.isPending}
 					onPress={async () => {
 						const formData = new FormData();
 						state.files.map((file) => formData.append("file", file));

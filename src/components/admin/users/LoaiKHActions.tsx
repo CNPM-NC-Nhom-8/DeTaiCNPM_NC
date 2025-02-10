@@ -2,7 +2,7 @@
 
 import { cn } from "@/utils/common";
 import { api } from "@/utils/trpc/react";
-import type { RouterOutputs } from "@/utils/trpc/shared";
+import type { RouterOutputs } from "@/utils/trpc/react";
 
 import {
 	Button,
@@ -193,7 +193,7 @@ export const LoaiKHActions = ({
 
 								<Button
 									type="submit"
-									isLoading={actionLoaiKH.isLoading}
+									isLoading={actionLoaiKH.isPending}
 									color={cn<"primary" | "warning" | "danger">({
 										danger: actionType === "Delete",
 										warning: actionType === "Edit",

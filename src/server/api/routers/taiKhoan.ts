@@ -4,17 +4,17 @@ import z from "zod";
 
 export const taiKhoanRouter = createTRPCRouter({
 	getTaiKhoan: publicProcedure.query(async ({ ctx }) => {
-		if (!ctx.userId) return null;
+		if (!ctx.user.userId) return null;
 
 		return await ctx.db.taiKhoan.findFirst({
-			where: { MaTaiKhoan: ctx.userId },
+			where: { MaTaiKhoan: ctx.user.userId },
 			include: { KhachHang: true },
 		});
 	}),
 
 	getPaymentHistories: authProcedure.input(z.object({ limit: z.number() })).query(async ({ ctx, input }) => {
 		return await ctx.db.donHang.findMany({
-			where: { maKhachHang: ctx.userId },
+			where: { maKhachHang: ctx.user.userId },
 			include: {
 				_count: { select: { CT_DonHang: true } },
 				CT_DonHang: {
@@ -33,7 +33,7 @@ export const taiKhoanRouter = createTRPCRouter({
 
 	getPaymentDetails: authProcedure.input(z.object({ MaDonHang: z.string() })).query(async ({ ctx, input }) => {
 		return await ctx.db.donHang.findFirst({
-			where: { maKhachHang: ctx.userId, MaDonHang: input.MaDonHang },
+			where: { maKhachHang: ctx.user.userId, MaDonHang: input.MaDonHang },
 			include: {
 				_count: { select: { CT_DonHang: true } },
 				CT_DonHang: {

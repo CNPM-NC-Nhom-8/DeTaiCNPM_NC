@@ -80,10 +80,10 @@ export const MainNavbar = () => {
 						aria-label="Cart"
 						as={Link}
 						href="/cart"
-						isLoading={cart.isLoading}
+						isLoading={cart.isPending}
 						startContent={<ShoppingCart size={20} />}
 					>
-						{!cart.isLoading && ((cart.isSuccess && cart.data.length) || 0)}
+						{!cart.isPending && ((cart.isSuccess && cart.data.length) || 0)}
 					</Button>
 				</NavbarItem>
 

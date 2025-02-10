@@ -2,7 +2,7 @@
 
 import { ThongSoKeyVietnamese } from "@/utils/common";
 import { ObjectKeys } from "@/utils/common";
-import type { RouterOutputs } from "@/utils/trpc/shared";
+import type { RouterOutputs } from "@/utils/trpc/react";
 
 import { Card, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@nextui-org/react";
 

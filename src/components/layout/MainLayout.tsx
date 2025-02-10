@@ -1,6 +1,6 @@
 "use client";
 
-import { env } from "@/env.mjs";
+import { env } from "@/env";
 import { TRPCReactProvider } from "@/utils/trpc/react";
 
 import { ThemeProvider as NextThemesProvider } from "next-themes";
@@ -18,7 +18,7 @@ if (typeof window !== "undefined") {
 	});
 }
 
-export function PostHogPageview(): JSX.Element {
+export function PostHogPageview() {
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
 
@@ -34,17 +34,17 @@ export function PostHogPageview(): JSX.Element {
 		}
 	}, [pathname, searchParams]);
 
-	return <></>;
+	return null;
 }
 
-export function MainLayout({ children, headers }: { children: React.ReactNode; headers: Headers }) {
+export function MainLayout({ children }: { children: React.ReactNode }) {
 	const router = useRouter();
 
 	return (
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		<NextUIProvider navigate={router.push} className="flex min-h-screen max-w-[100vw] flex-col">
 			<NextThemesProvider attribute="class" defaultTheme="dark">
-				<TRPCReactProvider headers={headers}>
+				<TRPCReactProvider>
 					<PostHogProvider client={posthog}>{children}</PostHogProvider>
 				</TRPCReactProvider>
 			</NextThemesProvider>

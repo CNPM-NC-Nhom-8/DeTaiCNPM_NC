@@ -8,9 +8,7 @@
  */
 import { db } from "@/server/db";
 
-import type { NextRequest } from "next/server";
-
-import { auth } from "@clerk/nextjs";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { TRPCError, initTRPC } from "@trpc/server";
 
 import superjson from "superjson";
@@ -22,35 +20,21 @@ import { ZodError } from "zod";
  * This section defines the "contexts" that are available in the backend API.
  *
  * These allow you to access things when processing a request, like the database, the session, etc.
- */
-interface CreateContextOptions {
-	headers: Headers;
-}
-
-/**
- * This helper generates the "internals" for a tRPC context. If you need to use it, you can export
- * it from here.
  *
- * Examples of things you may need it for:
- * - testing, so we don't have to mock Next.js' req/res
- * - tRPC's `createSSGHelpers`, where we don't have req/res
+ * This helper generates the "internals" for a tRPC context. The API handler and RSC clients each
+ * wrap this and provides the required context.
  *
- * @see https://create.t3.gg/en/usage/trpc#-serverapitrpcts
+ * @see https://trpc.io/docs/server/context
  */
-export const createInnerTRPCContext = (opts: CreateContextOptions) => {
-	const { userId } = auth();
+export const createTRPCContext = async (opts: { headers: Headers }) => {
+	const { userId, sessionClaims } = await auth();
 
-	return { headers: opts.headers, db, userId };
-};
-
-/**
- * This is the actual context you will use in your router. It will be used to process every request
- * that goes through your tRPC endpoint.
- *
- * @see https://trpc.io/docs/context
- */
-export const createTRPCContext = (opts: { req: NextRequest }) => {
-	return createInnerTRPCContext({ headers: opts.req.headers });
+	return {
+		db,
+		clerkClient: await clerkClient(),
+		user: { userId, metadata: sessionClaims?.metadata },
+		...opts,
+	};
 };
 
 /**
@@ -80,47 +64,12 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
 	},
 });
 
-const isAuthed = t.middleware(({ next, ctx }) => {
-	if (!ctx.userId) throw new TRPCError({ code: "UNAUTHORIZED", message: "Bạn cần đăng nhập để tiếp tục." });
-
-	return next({ ctx: { ...ctx, userId: ctx.userId } });
-});
-
-const isStaff = isAuthed.unstable_pipe(async ({ next, ctx }) => {
-	const data = await ctx.db.taiKhoan.findUnique({ where: { MaTaiKhoan: ctx.userId } });
-
-	if (!data)
-		throw new TRPCError({
-			code: "INTERNAL_SERVER_ERROR",
-			message: "Vui lòng liên hệ với quản trị viên nếu bạn gặp lỗi này",
-		});
-
-	if (data.Role !== "NhanVien" && data.Role !== "QuanTriVien")
-		throw new TRPCError({
-			code: "FORBIDDEN",
-			message: "Bạn không có quyền thực hiện hành động này. Yêu cầu chức vụ: Nhân Viên | Quản trị viên",
-		});
-
-	return next({ ctx: { ...ctx, userId: ctx.userId } });
-});
-
-const isAdmin = isAuthed.unstable_pipe(async ({ next, ctx }) => {
-	const data = await ctx.db.taiKhoan.findUnique({ where: { MaTaiKhoan: ctx.userId } });
-
-	if (!data)
-		throw new TRPCError({
-			code: "INTERNAL_SERVER_ERROR",
-			message: "Vui lòng liên hệ với quản trị viên nếu bạn gặp lỗi này",
-		});
-
-	if (data.Role !== "QuanTriVien")
-		throw new TRPCError({
-			code: "FORBIDDEN",
-			message: "Bạn không có quyền thực hiện hành động này. Yêu cầu chức vụ: Quản trị viên",
-		});
-
-	return next({ ctx: { ...ctx, userId: ctx.userId } });
-});
+/**
+ * Create a server-side caller.
+ *
+ * @see https://trpc.io/docs/server/server-side-calls
+ */
+export const createCallerFactory = t.createCallerFactory;
 
 /**
  * 3. ROUTER & PROCEDURE (THE IMPORTANT BIT)
@@ -135,6 +84,55 @@ const isAdmin = isAuthed.unstable_pipe(async ({ next, ctx }) => {
  * @see https://trpc.io/docs/router
  */
 export const createTRPCRouter = t.router;
+
+/**
+ * Middleware for timing procedure execution and adding an artificial delay in development.
+ *
+ * You can remove this if you don't like it, but it can help catch unwanted waterfalls by simulating
+ * network latency that would occur in production but not in local development.
+ */
+const isAuthed = t.middleware(({ next, ctx }) => {
+	if (!ctx.user?.userId) throw new TRPCError({ code: "UNAUTHORIZED", message: "Bạn cần đăng nhập để tiếp tục." });
+
+	return next({ ctx: { ...ctx, user: { ...ctx.user, userId: ctx.user.userId } } });
+});
+
+const isStaff = isAuthed.unstable_pipe(async ({ next, ctx }) => {
+	const data = await ctx.db.taiKhoan.findUnique({ where: { MaTaiKhoan: ctx.user.userId } });
+
+	if (!data)
+		throw new TRPCError({
+			code: "INTERNAL_SERVER_ERROR",
+			message: "Vui lòng liên hệ với quản trị viên nếu bạn gặp lỗi này",
+		});
+
+	if (data.Role !== "NhanVien" && data.Role !== "QuanTriVien")
+		throw new TRPCError({
+			code: "FORBIDDEN",
+			message: "Bạn không có quyền thực hiện hành động này. Yêu cầu chức vụ: Nhân Viên | Quản trị viên",
+		});
+
+	return next({ ctx: { ...ctx, userId: ctx.user.userId } });
+});
+
+const isAdmin = isAuthed.unstable_pipe(async ({ next, ctx }) => {
+	const data = await ctx.db.taiKhoan.findUnique({ where: { MaTaiKhoan: ctx.user.userId } });
+
+	if (!data)
+		throw new TRPCError({
+			code: "INTERNAL_SERVER_ERROR",
+			message: "Vui lòng liên hệ với quản trị viên nếu bạn gặp lỗi này",
+		});
+
+	if (data.Role !== "QuanTriVien")
+		throw new TRPCError({
+			code: "FORBIDDEN",
+			message: "Bạn không có quyền thực hiện hành động này. Yêu cầu chức vụ: Quản trị viên",
+		});
+
+	return next({ ctx: { ...ctx, userId: ctx.user.userId } });
+});
+
 export const publicProcedure = t.procedure;
 export const authProcedure = t.procedure.use(isAuthed);
 export const staffProcedure = t.procedure.use(isStaff);

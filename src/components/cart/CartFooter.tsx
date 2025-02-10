@@ -1,7 +1,7 @@
 "use client";
 
 import { moneyFormat } from "@/utils/common";
-import type { RouterOutputs } from "@/utils/trpc/shared";
+import type { RouterOutputs } from "@/utils/trpc/react";
 
 import { InsuranceTypeOptions } from "../phone/data";
 

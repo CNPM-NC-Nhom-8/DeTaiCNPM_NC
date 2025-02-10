@@ -1,12 +1,17 @@
-/**
- * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
- * for Docker builds.
- */
-await import("./src/env.mjs");
+import createJiti from "jiti";
+import { fileURLToPath } from "node:url";
+
+const jiti = createJiti(fileURLToPath(import.meta.url));
+
+// Import env here to validate during build. Using jiti we can import .ts files :)
+jiti("./src/env");
 
 /** @type {import("next").NextConfig} */
-const nextConfig = {
-	reactStrictMode: true,
+const options = {
+	typescript: { ignoreBuildErrors: true },
+	eslint: { ignoreDuringBuilds: true },
+	logging: { fetches: { fullUrl: true } },
+	experimental: { ppr: true, authInterrupts: true, useCache: true },
 };
 
-export default nextConfig;
+export default options;

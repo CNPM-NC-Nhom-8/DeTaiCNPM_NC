@@ -32,7 +32,7 @@ export const cartRouter = createTRPCRouter({
 					data: {
 						Quantity: input.quanlity,
 						InsuranceType: input.type,
-						MaKhachHang: ctx.userId,
+						MaKhachHang: ctx.user.userId,
 						MaSP: input.maSP,
 					},
 				});
@@ -50,10 +50,10 @@ export const cartRouter = createTRPCRouter({
 		}),
 
 	getCartItems: publicProcedure.query(async ({ ctx }) => {
-		if (!ctx.userId) return [];
+		if (!ctx.user.userId) return [];
 
 		return ctx.db.cartItem.findMany({
-			where: { MaKhachHang: ctx.userId },
+			where: { MaKhachHang: ctx.user.userId },
 			include: { SanPham: { include: { SanPhamMau: true, MatHang: true } } },
 			orderBy: [
 				{ SanPham: { SanPhamMau: { TenSP: "asc" } } },
@@ -66,12 +66,12 @@ export const cartRouter = createTRPCRouter({
 	payment: publicProcedure
 		.input(z.object({ maCartItems: z.string().array(), paymentMethod: z.enum(["Cash", "Bank", "None"]) }))
 		.mutation(async ({ ctx, input }) => {
-			if (!ctx.userId) return;
+			if (!ctx.user.userId) return;
 			if (input.paymentMethod === "None")
 				throw new TRPCError({ code: "BAD_REQUEST", message: "Bạn chưa chọn phương thức thanh toán." });
 
 			const currentUser = await ctx.db.taiKhoan.findFirst({
-				where: { MaTaiKhoan: ctx.userId },
+				where: { MaTaiKhoan: ctx.user.userId },
 				include: { KhachHang: true },
 			});
 

@@ -2,7 +2,7 @@
 
 import { dayjs } from "@/utils/common";
 import { api } from "@/utils/trpc/react";
-import type { RouterInputs, RouterOutputs } from "@/utils/trpc/shared";
+import type { RouterInputs, RouterOutputs } from "@/utils/trpc/react";
 
 import { TablePagination } from "../Pagination";
 import { HangSXActions } from "./HangSXActions";
@@ -96,17 +96,11 @@ export const ProductTable = ({
 		},
 		{
 			initialData: initialProduct,
-			refetchOnReconnect: false,
-			refetchOnWindowFocus: false,
-			onError: ({ message }) => toast.error("Lỗi: " + message),
 		},
 	);
 
 	const { data: HangSX, refetch: refetchHangSX } = api.common.getHangSX.useQuery(undefined, {
 		initialData: initialHangSX,
-		refetchOnReconnect: false,
-		refetchOnWindowFocus: false,
-		onError: ({ message }) => toast.error("Lỗi: " + message),
 	});
 
 	const capNhatSanPham = api.admin.updateProduct.useMutation({

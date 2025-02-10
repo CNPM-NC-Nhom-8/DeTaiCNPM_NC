@@ -16,10 +16,10 @@ export const commonRouter = createTRPCRouter({
 	getCurrentUser: publicProcedure
 		.input(z.object({ allowedRoles: z.array(z.custom<Role>()) }).optional())
 		.query(async ({ ctx, input }) => {
-			if (!ctx.userId) return null;
+			if (!ctx.user.userId) return null;
 
 			const user = await ctx.db.taiKhoan.findUnique({
-				where: { MaTaiKhoan: ctx.userId },
+				where: { MaTaiKhoan: ctx.user.userId },
 				include: { KhachHang: true },
 			});
 			if (!user) return null;

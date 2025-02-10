@@ -3,7 +3,7 @@ import { HistoryPaymentTable } from "@/components/history/HistoryPaymentTable";
 import { api } from "@/utils/trpc/server";
 
 export default async function Page() {
-	const data = await api.taiKhoan.getPaymentHistories.query({ limit: 2 });
+	const data = await api.taiKhoan.getPaymentHistories({ limit: 2 });
 
 	return (
 		<main className="container flex max-w-2xl flex-grow flex-col gap-4 px-6 pt-4">

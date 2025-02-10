@@ -6,7 +6,7 @@ import { api } from "@/utils/trpc/server";
 import { redirect } from "next/navigation";
 
 export default async function Page() {
-	const cart = await api.cart.getCartItems.query();
+	const cart = await api.cart.getCartItems();
 	if (cart.length === 0) redirect("/cart");
 
 	return (

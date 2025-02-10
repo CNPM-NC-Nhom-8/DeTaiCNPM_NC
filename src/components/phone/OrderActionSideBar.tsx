@@ -2,7 +2,7 @@
 
 import { cn, moneyFormat } from "@/utils/common";
 import { api } from "@/utils/trpc/react";
-import type { RouterOutputs } from "@/utils/trpc/shared";
+import type { RouterOutputs } from "@/utils/trpc/react";
 
 import { InsuranceTypeOptions } from "./data";
 
@@ -186,7 +186,7 @@ export const OrderActionSideBar = ({ data }: { data: RouterOutputs["product"]["g
 						size="lg"
 						color="success"
 						className="w-2/3 text-lg"
-						isLoading={themVaoGioHang.isLoading}
+						isLoading={themVaoGioHang.isPending}
 						startContent={<DollarSign size={20} />}
 						onPress={async () => {
 							const SP = data.SanPhamBienThe.find(
@@ -212,9 +212,9 @@ export const OrderActionSideBar = ({ data }: { data: RouterOutputs["product"]["g
 						variant="bordered"
 						spinnerPlacement="end"
 						className="w-max px-2"
-						isLoading={themVaoGioHang.isLoading}
+						isLoading={themVaoGioHang.isPending}
 						spinner={<Spinner color="success" size="sm" />}
-						endContent={!themVaoGioHang.isLoading && <ShoppingCart size={20} />}
+						endContent={!themVaoGioHang.isPending && <ShoppingCart size={20} />}
 						onPress={() => {
 							const SP = data.SanPhamBienThe.find(
 								({ DungLuong, Mau }) => DungLuong === selectedStorage && Mau === selectedColor,

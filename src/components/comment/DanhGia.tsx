@@ -2,7 +2,7 @@
 
 import { cn, dayjs } from "@/utils/common";
 import { api } from "@/utils/trpc/react";
-import type { RouterOutputs } from "@/utils/trpc/shared";
+import type { RouterOutputs } from "@/utils/trpc/react";
 
 import { DanhGiaTextArea } from "./DanhGiaTextArea";
 
@@ -114,16 +114,16 @@ const DanhGia = ({ danhGia, refetch, user, isTraLoi }: DanhGiaParams) => {
 	});
 
 	return (
-		<Card isDisabled={xoaDanhGia.isLoading} as={isTraLoi ? Fragment : "div"}>
+		<Card isDisabled={xoaDanhGia.isPending} as={isTraLoi ? Fragment : "div"}>
 			<CardBody as={"div"} className={cn("relative", { "p-0": isTraLoi })}>
 				{user && (user.Role === "NhanVien" || user.Role === "QuanTriVien") && (
 					<Button
 						size="sm"
 						isIconOnly
 						color="danger"
-						isLoading={xoaDanhGia.isLoading}
+						isLoading={xoaDanhGia.isPending}
 						className={cn("absolute right-2 top-2 z-20", { "right-0": isTraLoi })}
-						startContent={xoaDanhGia.isLoading ? undefined : <X size={16} />}
+						startContent={xoaDanhGia.isPending ? undefined : <X size={16} />}
 						onPress={() => xoaDanhGia.mutate({ maDanhGia: danhGia.MaDanhGia })}
 					/>
 				)}
@@ -211,7 +211,7 @@ const DanhGia = ({ danhGia, refetch, user, isTraLoi }: DanhGiaParams) => {
 									{danhGia._count.TraLoiBoi} trả lời
 								</Button>
 
-								{isExpanded && traLoi.isLoading && (
+								{isExpanded && traLoi.isPending && (
 									<>
 										<Spacer y={2} />
 										<blockquote className="flex flex-col gap-4 border-l-2 border-default-500 pl-4">

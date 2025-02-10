@@ -8,7 +8,7 @@ import { Button, Card, CardBody, CardFooter } from "@nextui-org/react";
 import { LucideBadgeCheck } from "lucide-react";
 
 export default async function Page({ params: { id } }: { params: { id: string } }) {
-	const paymentDetail = await api.taiKhoan.getPaymentDetails.query({ MaDonHang: id });
+	const paymentDetail = await api.taiKhoan.getPaymentDetails({ MaDonHang: id });
 	if (!paymentDetail) redirect("/cart");
 
 	return (
