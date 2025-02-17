@@ -1,7 +1,7 @@
-import { ForbiddenPage } from "@/components/common/Page403";
 import { api } from "@/utils/trpc/server";
 
 import type { Metadata } from "next";
+import { forbidden } from "next/navigation";
 
 import { cache } from "react";
 
@@ -18,7 +18,7 @@ export const generateMetadata = async (): Promise<Metadata> => {
 
 export default async function Page() {
 	const user = await getUser();
-	if (!user) return <ForbiddenPage />;
+	if (!user) forbidden();
 
 	return <main className="container flex max-w-6xl flex-grow flex-col gap-6 px-6 py-4"></main>;
 }

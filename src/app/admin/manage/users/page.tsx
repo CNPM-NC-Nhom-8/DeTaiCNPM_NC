@@ -1,8 +1,8 @@
 import { UserTable } from "@/components/admin/users/UserTable";
-import { ForbiddenPage } from "@/components/common/Page403";
 import { api } from "@/utils/trpc/server";
 
 import type { Metadata } from "next";
+import { forbidden } from "next/navigation";
 
 import { cache } from "react";
 
@@ -19,7 +19,7 @@ export const generateMetadata = async (): Promise<Metadata> => {
 
 export default async function Page() {
 	const user = await getUser();
-	if (!user) return <ForbiddenPage />;
+	if (!user) forbidden();
 
 	const [userData, LoaiKhachHang] = await Promise.all([
 		api.admin.getUsers({ page: 1, perPage: 6 }),

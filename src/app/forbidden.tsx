@@ -4,7 +4,7 @@ import { Button, ButtonGroup, Link } from "@nextui-org/react";
 
 import { AlertTriangle } from "lucide-react";
 
-export const ForbiddenPage = () => {
+export default function ForbiddenPage() {
 	return (
 		<div className="container mx-auto flex max-w-5xl flex-1 items-center justify-center">
 			<div className="flex w-max flex-col items-center gap-2 px-2 py-4">
@@ -32,4 +32,4 @@ export const ForbiddenPage = () => {
 			</div>
 		</div>
 	);
-};
+}
