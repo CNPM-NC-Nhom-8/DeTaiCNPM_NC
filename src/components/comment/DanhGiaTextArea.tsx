@@ -79,7 +79,7 @@ export const DanhGiaTextArea = ({ maSPM, maTraLoi, user, refetch }: ParamsType) 
 					isLoading={danhGia.isPending}
 					endContent={danhGia.isPending ? undefined : <SendHorizontal size={20} />}
 					color="primary"
-					onClick={() => {
+					onPress={() => {
 						danhGia.mutate({
 							maSPM,
 							noiDung,

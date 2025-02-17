@@ -11,7 +11,7 @@ export const PaymentNav = ({ count }: { count: number }) => {
 
 	return (
 		<nav className="flex w-full items-center justify-between">
-			<Button variant="light" isIconOnly startContent={<ChevronLeft />} onClick={() => router.back()} />
+			<Button variant="light" isIconOnly startContent={<ChevronLeft />} onPress={() => router.back()} />
 			<h3 className="justify-center text-2xl font-semibold">Thanh toán ({count})</h3>
 
 			<span></span>

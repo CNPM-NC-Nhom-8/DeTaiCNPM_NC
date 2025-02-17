@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button, Input } from "@nextui-org/react";
 
 import { Search } from "lucide-react";
-import { type MouseEvent, useRef, useTransition } from "react";
+import { useRef, useTransition } from "react";
 
 export const SearchBar = () => {
 	const router = useRouter();
@@ -13,15 +13,14 @@ export const SearchBar = () => {
 
 	const [isLoading, startTransition] = useTransition();
 
-	const handleSubmit = (event: MouseEvent<HTMLButtonElement>) => {
-		event.preventDefault();
+	function handleSubmit() {
 		if (inputRef.current?.value === "") return;
 
 		const searchQuery = new URLSearchParams();
 		searchQuery.set("query", inputRef.current!.value);
 
 		router.push("/search?" + searchQuery.toString());
-	};
+	}
 
 	return (
 		<form className="group flex w-max">
@@ -45,10 +44,7 @@ export const SearchBar = () => {
 				variant="bordered"
 				startContent={!isLoading ? <Search size={20} /> : null}
 				isLoading={isLoading}
-				onClick={(e) => {
-					e.preventDefault();
-					startTransition(() => handleSubmit(e));
-				}}
+				onPress={() => startTransition(() => handleSubmit())}
 			/>
 		</form>
 	);

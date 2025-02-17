@@ -39,7 +39,7 @@ export const Previews = () => {
 					startContent={<ChevronLeft />}
 					className="absolute left-0 top-1/2 z-10 -translate-x-full rounded-l-none bg-black/60 transition-transform group-hover:translate-x-0"
 					isDisabled={typeof currentImage === "undefined"}
-					onClick={() => {
+					onPress={() => {
 						setImage((prev) => {
 							if (prev) {
 								const currentIndex = state.files.indexOf(prev);
@@ -78,7 +78,7 @@ export const Previews = () => {
 					startContent={<ChevronRight />}
 					isDisabled={typeof currentImage === "undefined"}
 					className="absolute right-0 top-1/2 z-10 translate-x-full rounded-r-none bg-black/60 transition-transform group-hover:translate-x-0"
-					onClick={() => {
+					onPress={() => {
 						setImage((prev) => {
 							if (prev) {
 								const currentIndex = state.files.indexOf(prev);
@@ -95,7 +95,7 @@ export const Previews = () => {
 						key={["small", item.name].join("-")}
 						radius="none"
 						className="h-full min-w-max flex-col p-0 outline-none"
-						onClick={() => setImage(item)}
+						onPress={() => setImage(item)}
 					>
 						<Image radius="none" src={item.preview} alt="" className="aspect-square w-12 object-cover" />
 					</Button>

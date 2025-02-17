@@ -19,7 +19,7 @@ export const PhoneImageShowcase = ({ images }: PropsParams) => {
 					isIconOnly
 					startContent={<ChevronLeft />}
 					className="absolute left-0 top-1/2 z-10 -translate-x-full rounded-l-none bg-black/60 transition-transform group-hover:translate-x-0"
-					onClick={() => {
+					onPress={() => {
 						setImage((prev) => {
 							const currentIndex = images.indexOf(prev);
 							return images.at(currentIndex - 1 < 0 ? -1 : currentIndex - 1)!;
@@ -48,7 +48,7 @@ export const PhoneImageShowcase = ({ images }: PropsParams) => {
 					isIconOnly
 					startContent={<ChevronRight />}
 					className="absolute right-0 top-1/2 z-10 translate-x-full rounded-r-none bg-black/60 transition-transform group-hover:translate-x-0"
-					onClick={() => {
+					onPress={() => {
 						setImage((prev) => {
 							const currentIndex = images.indexOf(prev);
 							return images.at(currentIndex + 1 >= images.length ? 0 : currentIndex + 1)!;
@@ -63,7 +63,7 @@ export const PhoneImageShowcase = ({ images }: PropsParams) => {
 						key={item.MaHA}
 						radius="none"
 						className="h-full min-w-max flex-col p-0 outline-none"
-						onClick={() => setImage(item)}
+						onPress={() => setImage(item)}
 					>
 						<Image radius="none" src={item.Url} alt="" className="aspect-square w-12 object-cover" />
 					</Button>
