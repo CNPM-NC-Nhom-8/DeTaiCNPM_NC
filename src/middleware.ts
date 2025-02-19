@@ -5,13 +5,13 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 // See https://clerk.com/docs/references/nextjs/auth-middleware for more information about configuring your middleware
 const isPublicRoute = createRouteMatcher([
 	"/",
-	"/auth/login",
-	"/auth/register",
+	"/auth/login(.*)",
+	"/auth/register(.*)",
 	"/cart",
-	"/phone/:path*",
-	"/api/trpc/:path*",
-	"/api/clerk/:path*",
-	"/api/public/:path*",
+	"/phone(.*)",
+	"/api/trpc(.*)",
+	"/api/clerk(.*)",
+	"/api/public(.*)",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
