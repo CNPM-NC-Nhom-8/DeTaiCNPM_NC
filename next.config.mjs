@@ -11,7 +11,12 @@ const options = {
 	typescript: { ignoreBuildErrors: true },
 	eslint: { ignoreDuringBuilds: true },
 	logging: { fetches: { fullUrl: true } },
-	experimental: { ppr: true, authInterrupts: true, useCache: true },
+	experimental: {
+		ppr: true,
+		authInterrupts: true,
+		useCache: true,
+		reactCompiler: true,
+	},
 };
 
 export default options;
