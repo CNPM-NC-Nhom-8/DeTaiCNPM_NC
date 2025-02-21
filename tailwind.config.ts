@@ -9,12 +9,8 @@ const config: Config = {
 		extend: {
 			keyframes: {
 				loading: {
-					from: {
-						transform: "rotate(0deg)",
-					},
-					to: {
-						transform: "rotate(-360deg)",
-					},
+					from: { transform: "rotate(0deg)" },
+					to: { transform: "rotate(-360deg)" },
 				},
 			},
 			colors: {
@@ -69,9 +65,7 @@ const config: Config = {
 		container: {
 			center: true,
 			padding: "1.5rem",
-			screens: {
-				"2xl": "1400px",
-			},
+			screens: { "2xl": "1400px" },
 		},
 	},
 	darkMode: ["class", "class"],
