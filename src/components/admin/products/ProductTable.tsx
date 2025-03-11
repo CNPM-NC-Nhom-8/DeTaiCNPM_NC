@@ -35,7 +35,7 @@ import {
 
 import { ChevronDown, ChevronDownIcon, Plus, RotateCcw, SearchIcon } from "lucide-react";
 import { type ChangeEvent, useCallback, useMemo, useState } from "react";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 export type ProductType = RouterOutputs["admin"]["getProducts"]["data"][number];
 

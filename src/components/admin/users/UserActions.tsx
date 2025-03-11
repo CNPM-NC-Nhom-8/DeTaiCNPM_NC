@@ -22,7 +22,7 @@ import {
 
 import { Ban, CheckCircle2, MoreVertical, Pencil, XCircle } from "lucide-react";
 import { useState } from "react";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 export const UserActions = ({
 	user,

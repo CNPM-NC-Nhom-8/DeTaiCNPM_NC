@@ -24,7 +24,7 @@ import {
 
 import { MoreVertical, Package, Pencil, XCircle } from "lucide-react";
 import { useState } from "react";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 export const ProductActions = ({ product, refetch }: { product: ProductType; refetch: () => Promise<unknown> }) => {
 	const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();

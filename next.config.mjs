@@ -13,9 +13,9 @@ const options = {
 	logging: { fetches: { fullUrl: true } },
 	experimental: {
 		ppr: true,
-		authInterrupts: true,
 		useCache: true,
 		reactCompiler: true,
+		authInterrupts: true,
 	},
 };
 

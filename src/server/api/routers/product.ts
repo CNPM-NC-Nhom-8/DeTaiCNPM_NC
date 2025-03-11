@@ -44,10 +44,30 @@ export const productRouter = createTRPCRouter({
 			return { ...data, ThongSoKyThuat: exclude(data.ThongSoKyThuat!, ["MaSPM", "MaThongSo"]) };
 		}),
 
-	getSanPhamTuongTu: publicProcedure.input(z.object({ maHSX: z.string() })).query(async ({ ctx, input }) => {
-		return await ctx.db.hangSanXuat.findFirst({
-			where: { MaHSX: input.maHSX },
-			include: { SanPhamMau: { take: 5, include: { SanPhamBienThe: true } } },
+	getSanPhamTuongTu: publicProcedure
+		.input(z.object({ maSPM: z.string(), maHSX: z.string() }))
+		.query(async ({ ctx, input }) => {
+			const includeFavorite = ctx.user.userId ? { where: { MaKhachHang: ctx.user.userId } } : false;
+
+			return await ctx.db.hangSanXuat.findFirst({
+				where: { MaHSX: input.maHSX, SanPhamMau: { some: { MaSPM: { not: input.maSPM } } } },
+				include: {
+					SanPhamMau: {
+						take: 5,
+						include: { SanPhamBienThe: { include: { MatHang: true } }, SanPhamYeuThich: includeFavorite },
+					},
+				},
+			});
+		}),
+
+	getSanPhamCu: publicProcedure.input(z.object({ maSPM: z.string() })).query(async ({ ctx, input }) => {
+		const includeFavorite = ctx.user.userId ? { where: { MaKhachHang: ctx.user.userId } } : false;
+
+		return await ctx.db.sanPhamMau.findMany({
+			where: { MaSPM: { not: input.maSPM } },
+			include: { SanPhamBienThe: { include: { MatHang: true } }, SanPhamYeuThich: includeFavorite },
+			orderBy: { NgayThem: "desc" },
+			take: 5,
 		});
 	}),
 
@@ -76,39 +96,37 @@ export const productRouter = createTRPCRouter({
 	searchProduct: publicProcedure
 		.input(
 			z.object({
-				pageNum: z.number().min(0, "Số trang phải lớn hơn 0"),
-				perPage: z.number().min(1, "Số lượng từng trang phải lớn hơn 1"),
+				pageIndex: z.number().min(0, "Số trang phải lớn hơn 0"),
+				pageSize: z.number().min(1, "Số lượng từng trang phải lớn hơn 1"),
 				query: z
 					.object({
-						value: z.string().optional(),
-						hangSX: z.string().optional(),
+						value: z.string().nullish(),
+						hangSX: z.string().nullish(),
 					})
 					.optional(),
 			}),
 		)
 		.query(async ({ ctx, input }) => {
-			const trimValue = (input.query?.value ?? "").trim();
+			const search: Prisma.SanPhamMauWhereInput["AND"] = [];
 
-			const search: Prisma.SanPhamMauWhereInput = {
-				AND: [
-					input.query?.value
-						? { OR: [{ TenSP: { contains: trimValue } }, { MoTa: { contains: trimValue } }] }
-						: {},
-					input.query?.hangSX ? { MaHSX: input.query.hangSX } : {},
-				],
-			};
+			if (input.query?.hangSX) search.push({ MaHSX: input.query.hangSX });
+			if (input.query?.value && input.query.value.length > 0)
+				search.push({ TenSP: { contains: input.query.value.trim(), mode: "insensitive" } });
+
+			const includeFavorite = ctx.user.userId ? { where: { MaKhachHang: ctx.user.userId } } : false;
 
 			const [newsCount, newsData] = await ctx.db.$transaction([
-				ctx.db.sanPhamMau.count({ where: search }),
+				ctx.db.sanPhamMau.count({ where: { AND: search } }),
 				ctx.db.sanPhamMau.findMany({
-					where: search,
+					take: input.pageSize,
+					where: { AND: search },
+					skip: Math.abs(input.pageIndex - 1) * input.pageSize,
 					include: {
 						HSX: true,
-						SanPhamBienThe: true,
+						SanPhamBienThe: { include: { MatHang: true } },
+						SanPhamYeuThich: includeFavorite,
 						_count: { select: { DanhGia: true } },
 					},
-					take: input.perPage,
-					skip: Math.abs(input.pageNum - 1) * input.perPage,
 				}),
 			]);
 

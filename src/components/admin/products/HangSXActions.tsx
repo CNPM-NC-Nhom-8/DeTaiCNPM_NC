@@ -24,7 +24,7 @@ import {
 
 import { Pencil, PlusCircle, Settings2, XCircle } from "lucide-react";
 import { useState } from "react";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 export const HangSXActions = ({
 	refetch,

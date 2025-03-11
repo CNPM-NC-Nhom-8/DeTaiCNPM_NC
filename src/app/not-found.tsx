@@ -1,8 +1,9 @@
 "use client";
 
-import type { Metadata } from "next";
+import { Button } from "@/components/ui/button";
 
-import { Button, ButtonGroup, Link } from "@nextui-org/react";
+import type { Metadata } from "next";
+import Link from "next/link";
 
 import { AlertTriangle } from "lucide-react";
 
@@ -25,15 +26,15 @@ export default function NotFoundPage() {
 					bạn nghĩ đây là 1 lỗi kỹ thuật!
 				</p>
 
-				<ButtonGroup>
-					<Button as={Link} href="/" color="primary">
-						Quay lại trang chủ
+				<div className="flex w-full max-w-xs items-center justify-between">
+					<Button asChild className="rounded-r-none" variant="outline">
+						<Link href="/">Quay lại trang chủ!</Link>
 					</Button>
 
-					<Button as={Link} isExternal href="mailto:phungtanphat23@gmail.com" color="secondary">
-						Liên hệ kỹ thuật viên
+					<Button asChild className="rounded-l-none" variant="outline">
+						<Link href="#">Liên hệ kỹ thuật viên</Link>
 					</Button>
-				</ButtonGroup>
+				</div>
 			</div>
 		</div>
 	);

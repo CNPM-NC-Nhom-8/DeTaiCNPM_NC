@@ -1,8 +1,15 @@
 "use client";
 
-import { Button, ButtonGroup, Link } from "@nextui-org/react";
+import { Button } from "@/components/ui/button";
+
+import type { Metadata } from "next";
+import Link from "next/link";
 
 import { AlertTriangle } from "lucide-react";
+
+export const metadata: Metadata = {
+	title: "Lỗi 403 - Truy cập bị từ chối",
+};
 
 export default function ForbiddenPage() {
 	return (
@@ -20,15 +27,15 @@ export default function ForbiddenPage() {
 					Vui lòng liên hệ với quản trị viên website nếu bạn tin rằng bạn nên được cấp quyền truy cập.
 				</p>
 
-				<ButtonGroup>
-					<Button as={Link} href="/" color="primary">
-						Quay lại trang chủ
+				<div className="flex w-full max-w-xs items-center justify-between">
+					<Button asChild className="rounded-r-none" variant="outline">
+						<Link href="/">Quay lại trang chủ!</Link>
 					</Button>
 
-					<Button as={Link} isExternal href="mailto:phungtanphat23@gmail.com" color="secondary">
-						Liên hệ kỹ thuật viên
+					<Button asChild className="rounded-l-none" variant="outline">
+						<Link href="#">Liên hệ kỹ thuật viên</Link>
 					</Button>
-				</ButtonGroup>
+				</div>
 			</div>
 		</div>
 	);

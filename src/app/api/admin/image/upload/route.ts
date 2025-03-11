@@ -19,7 +19,8 @@ export const POST = async (req: Request) => {
 
 		const { ext } = path.parse(file.name);
 
-		const res = await fetch("https://ciuknuwpoenunhtkijcv.supabase.co/storage/v1/object/Images/" + v4() + ext, {
+		const fileName = v4() + ext;
+		const res = await fetch("https://ciuknuwpoenunhtkijcv.supabase.co/storage/v1/object/Images/" + fileName, {
 			body: reqData,
 			method: "POST",
 			headers: { Authorization: "Bearer " + env.SUPABASE_KEY },
@@ -36,6 +37,7 @@ export const POST = async (req: Request) => {
 	return NextResponse.json(
 		successFilePaths.map((file) => ({
 			path: "https://ciuknuwpoenunhtkijcv.supabase.co/storage/v1/object/public/" + file,
+			fileName: file,
 		})),
 	);
 };

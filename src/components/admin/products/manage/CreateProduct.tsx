@@ -4,18 +4,19 @@ import { FAQInput } from "@/components/admin/products/manage/FAQInput";
 import { Previews } from "@/components/admin/products/manage/ImageDropzone";
 import { TypeAdder } from "@/components/admin/products/manage/TypeAdder";
 import { detailsKeys, useProductData } from "@/components/admin/products/manage/data";
-import { PhoneDetailInfo } from "@/components/phone/PhoneDetailInfo";
+import { PhoneDetailInfo } from "@/components/phone/phone-details";
+
 import { ThongSoKeyVietnamese } from "@/utils/common";
-import { api } from "@/utils/trpc/react";
 import type { RouterOutputs } from "@/utils/trpc/react";
+import { api } from "@/utils/trpc/react";
 
 import { Button, Card, CardBody, Divider, Input, type PropsOf, Select, SelectItem, Textarea } from "@nextui-org/react";
 
 import { useState } from "react";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { useStore } from "zustand";
 
-export const CreateProduct = ({ hangSX }: { hangSX: RouterOutputs["common"]["getHangSX"] }) => {
+export function CreateProduct({ hangSX }: { hangSX: RouterOutputs["common"]["getHangSX"] }) {
 	const state = useStore(useProductData, (state) => state);
 
 	const addProduct = api.admin.addProduct.useMutation({
@@ -147,4 +148,4 @@ export const CreateProduct = ({ hangSX }: { hangSX: RouterOutputs["common"]["get
 			</section>
 		</main>
 	);
-};
+}

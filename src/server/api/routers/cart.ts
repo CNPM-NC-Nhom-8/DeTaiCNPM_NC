@@ -9,11 +9,11 @@ import z from "zod";
 
 export const cartRouter = createTRPCRouter({
 	addItemIntoCart: authProcedure
-		.input(z.object({ maSP: z.string(), type: z.custom<Insurance>(), quanlity: z.number() }))
+		.input(z.object({ maSP: z.string(), insuranceOption: z.custom<Insurance>(), quanlity: z.number() }))
 		.mutation(async ({ ctx, input }) => {
 			const [existCartItem, currentSP] = await ctx.db.$transaction([
 				ctx.db.cartItem.findFirst({
-					where: { MaSP: input.maSP, InsuranceType: input.type },
+					where: { MaSP: input.maSP, InsuranceType: input.insuranceOption },
 				}),
 				ctx.db.sanPhamBienThe.findFirst({
 					where: { MaSP: input.maSP },
@@ -31,7 +31,7 @@ export const cartRouter = createTRPCRouter({
 				await ctx.db.cartItem.create({
 					data: {
 						Quantity: input.quanlity,
-						InsuranceType: input.type,
+						InsuranceType: input.insuranceOption,
 						MaKhachHang: ctx.user.userId,
 						MaSP: input.maSP,
 					},

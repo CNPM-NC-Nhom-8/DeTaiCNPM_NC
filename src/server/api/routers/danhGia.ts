@@ -19,10 +19,16 @@ export const danhGiaRouter = createTRPCRouter({
 
 			const danhGia = await ctx.db.danhGia.findMany({
 				where: { MaSPM: input.maSPM, MaTraLoi: null },
-				include: { KhachHang: { include: { TaiKhoan: true } }, _count: { select: { TraLoiBoi: true } } },
-				cursor: input.cursor ? { MaDanhGia: input.cursor } : undefined,
+				include: {
+					KhachHang: {
+						omit: { DiaChi: true },
+						include: { TaiKhoan: { select: { AnhDaiDien: true } } },
+					},
+					_count: { select: { TraLoiBoi: true } },
+				},
 				take: limit + 1,
 				orderBy: { NgayDanhGia: "desc" },
+				cursor: input.cursor ? { MaDanhGia: input.cursor } : undefined,
 			});
 
 			let nextCursor: typeof input.cursor | undefined = undefined;

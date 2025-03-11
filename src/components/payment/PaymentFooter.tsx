@@ -1,5 +1,8 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+
 import { moneyFormat } from "@/utils/common";
 import { api } from "@/utils/trpc/react";
 import type { RouterInputs, RouterOutputs } from "@/utils/trpc/react";
@@ -8,21 +11,19 @@ import { InsuranceTypeOptions } from "../phone/data";
 
 import { useRouter } from "next/navigation";
 
-import { Button, Card, CardBody, Select, SelectItem } from "@nextui-org/react";
+import { Select, SelectItem } from "@nextui-org/react";
 
 import { useState } from "react";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 export const PaymentFooter = ({ cart }: { cart: RouterOutputs["cart"]["getCartItems"] }) => {
 	const router = useRouter();
-	const apiUtils = api.useUtils();
-
 	const [paymentMethod, setMethod] = useState<RouterInputs["cart"]["payment"]["paymentMethod"]>("None");
 
 	const payment = api.cart.payment.useMutation({
 		onSuccess: async (data) => {
+			router.refresh();
 			router.push("/payment/success/" + data?.data.MaDonHang);
-			await apiUtils.cart.getCartItems.refetch();
 		},
 		onError: ({ message }) => toast.error("Lỗi: " + message),
 	});
@@ -30,7 +31,7 @@ export const PaymentFooter = ({ cart }: { cart: RouterOutputs["cart"]["getCartIt
 	return (
 		<div className="flex flex-col gap-4">
 			<Card>
-				<CardBody className="flex flex-row items-center justify-between">
+				<CardContent className="flex p-3">
 					<Select
 						label="Phương thức thanh toán"
 						labelPlacement="outside"
@@ -56,11 +57,11 @@ export const PaymentFooter = ({ cart }: { cart: RouterOutputs["cart"]["getCartIt
 							</SelectItem>
 						)}
 					</Select>
-				</CardBody>
+				</CardContent>
 			</Card>
 
 			<Card>
-				<CardBody className="flex flex-row items-center justify-between">
+				<CardContent className="flex items-center justify-between p-3">
 					<div className="text-small">
 						<span>Tổng tiền: </span>
 						<span>
@@ -79,16 +80,16 @@ export const PaymentFooter = ({ cart }: { cart: RouterOutputs["cart"]["getCartIt
 
 					<div>
 						<Button
-							onPress={() =>
+							variant="secondary"
+							disabled={payment.isPending || paymentMethod === "None"}
+							onMouseDown={() =>
 								payment.mutate({ maCartItems: cart.map((item) => item.MaCartItem), paymentMethod })
 							}
-							color="success"
-							isLoading={payment.isPending}
 						>
 							Thanh toán ngay ({cart.length})
 						</Button>
 					</div>
-				</CardBody>
+				</CardContent>
 			</Card>
 		</div>
 	);

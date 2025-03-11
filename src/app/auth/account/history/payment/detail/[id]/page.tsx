@@ -1,12 +1,13 @@
-import { HistoryPaymentDetailsNav } from "@/components/history/details/HistoryPaymentDetailsNav";
+import { BackButton } from "@/components/common/back-button";
 import { InsuranceTypeOptions } from "@/components/phone/data";
-import { dayjs, moneyFormat } from "@/utils/common";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+
+import { dayjs, moneyFormat, numberFormat } from "@/utils/common";
 import { api } from "@/utils/trpc/server";
 
 import type { Metadata } from "next";
+import Image from "next/image";
 import { notFound } from "next/navigation";
-
-import { Card, CardBody, CardFooter, Image, Tooltip } from "@nextui-org/react";
 
 import { cache } from "react";
 
@@ -26,62 +27,82 @@ export default async function Page({ params: { id } }: { params: { id: string } 
 	if (!data) notFound();
 
 	return (
-		<main className="container grid max-w-2xl flex-grow grid-cols-1 grid-rows-[max-content,minmax(0,1fr)] gap-4 px-6 pt-4">
-			<HistoryPaymentDetailsNav />
+		<main className="container flex max-w-6xl flex-grow flex-col gap-4 px-6 py-4">
+			<nav className="flex w-full items-center justify-between">
+				<BackButton />
+				<h3 className="justify-center text-2xl font-semibold">Chi tiết đơn hàng</h3>
+				<span></span>
+			</nav>
 
 			<Card className="max-h-full overflow-auto">
-				<h1 className="px-5 pt-2 text-xl font-semibold">Danh sách sản phẩm</h1>
+				<CardHeader>
+					<CardTitle className="text-xl font-semibold">Danh sách sản phẩm</CardTitle>
+				</CardHeader>
 
-				<CardBody className="flex flex-col gap-4 border-b-[1px] border-gray">
-					{data?.CT_DonHang.map((item) => {
-						const insuranceType = InsuranceTypeOptions.find(({ type }) => type === item.InsuranceType);
+				<CardContent className="flex flex-col gap-2">
+					{data?.CT_DonHang.map((item, index) => {
+						const insurance = InsuranceTypeOptions.find(({ type }) => type === item.InsuranceType);
 
 						return (
-							<section key={item.MaCT_DH} className="flex gap-4">
+							<section key={item.MaCT_DH} className="flex gap-4" id={item.MaCT_DH} data-index={index}>
 								<Image
-									width={150}
-									classNames={{ img: "aspect-square" }}
+									width={128}
+									height={128}
+									unoptimized
+									className="size-32 flex-shrink-0 rounded object-cover object-center"
 									alt={item.SanPham.SanPhamMau.MoTa}
 									src={item.SanPham.SanPhamMau.AnhBia}
 								/>
 
-								<div className="flex w-full flex-col gap-2">
-									<h2 className="text-lg font-semibold">{item.SanPham.SanPhamMau.TenSP}</h2>
-									<span className="text-small text-gray">
-										Loại: {item.SanPham.DungLuong} - {item.SanPham.Mau}
-									</span>
-
-									<div className="flex justify-between">
-										<span className="text-small text-gray">Số lượng: {item.SoLuong}</span>
-										<span>{moneyFormat.format(item.SanPham.Gia * item.SoLuong)}</span>
+								<div className="flex w-full flex-col gap-1 text-sm text-gray">
+									<div className="flex w-full items-center justify-between">
+										<h2 className="text-lg font-semibold">{item.SanPham.SanPhamMau.TenSP}</h2>
+										<span>#{index + 1}</span>
 									</div>
-
-									<span className="text-small text-gray">
-										Bảo hiểm:{" "}
-										{insuranceType
-											? insuranceType.description.split(": ").at(0) +
-												" + " +
-												moneyFormat.format(insuranceType.price)
-											: "Không có"}
+									<span className="text-gray">
+										Loại: {item.SanPham.DungLuong} - {item.SanPham.Mau} - Giá:{" "}
+										{moneyFormat.format(item.SanPham.Gia)}
 									</span>
+
+									<span>Số lượng: {item.SoLuong}</span>
+
+									<span>
+										{insurance
+											? `${insurance.title}: ${insurance.description} + ${moneyFormat.format(insurance.price)}`
+											: "Không có: Sản phảm không có bảo hành + 0 ₫"}
+									</span>
+
+									<div>
+										<span>Tổng tiền cho sản phẩm: </span>
+										<span>
+											{numberFormat.format(item.SanPham.Gia)} * {item.SoLuong} +{" "}
+											{numberFormat.format(insurance?.price ?? 0)} ={" "}
+										</span>
+										<span className="underline underline-offset-2">
+											{moneyFormat.format(
+												item.SanPham.Gia * item.SoLuong + (insurance?.price ?? 0),
+											)}
+										</span>
+									</div>
 								</div>
 							</section>
 						);
 					})}
-				</CardBody>
+				</CardContent>
 
 				<CardFooter>
 					<div className="flex w-full items-center justify-between">
-						<div className="flex items-center gap-2">
+						<div className="flex items-center gap-2 text-sm">
 							<span>Ngày đặt:</span>
-							<Tooltip showArrow content={dayjs(data.NgayDat).format("DD MMMM, YYYY, HH:mm")}>
-								<span className="text-lg">{dayjs(data.NgayDat).fromNow()}</span>
-							</Tooltip>
+
+							<span className="capitalize" title={dayjs(data.NgayDat).format("DD MMMM, YYYY, HH:mm")}>
+								{dayjs(data.NgayDat).format("Lúc HH:mm - Ngày DD MMMM YYYY")}
+							</span>
 						</div>
 
 						<div className="flex items-center gap-2">
 							<span>Tổng số tiền:</span>
-							<span className="text-2xl text-danger">{moneyFormat.format(data.TongTien)}</span>
+							<span className="text-danger">{moneyFormat.format(data.TongTien)}</span>
 						</div>
 					</div>
 				</CardFooter>

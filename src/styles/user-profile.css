@@ -1,0 +1,54 @@
+.cl-userProfile-root,
+.cl-cardBox {
+	@apply w-full;
+}
+
+.cl-headerTitle,
+.cl-pageScrollBox *,
+.cl-navbar > *:only-child *,
+.cl-navbar > *:not(:last-child) *,
+.cl-navbarMobileMenuRow * {
+	@apply !text-foreground/80;
+}
+
+.cl-userButtonTrigger,
+.cl-userButtonBox,
+.cl-avatarBox,
+.cl-avatarImage {
+	@apply size-10;
+}
+
+.cl-cardBox {
+	@apply !rounded border border-border;
+}
+
+.cl-footer,
+.cl-userButtonPopoverFooter {
+	@apply hidden;
+}
+
+.cl-scrollBox {
+	@apply border-l border-border bg-background/80 backdrop-blur;
+}
+
+.cl-navbarMobileMenuRow {
+	@apply bg-gradient-to-b from-background/70 to-background/70 backdrop-blur;
+}
+
+.cl-navbar {
+	@apply bg-background/80 bg-gradient-to-b from-background/70 to-background/70 text-foreground backdrop-blur;
+}
+
+.cl-menuList,
+.cl-actionCard {
+	background-color: unset;
+	@apply border border-border;
+}
+
+.cl-formFieldInput {
+	@apply rounded !border !border-input bg-background;
+}
+
+.cl-menuItem {
+	@apply bg-background hover:opacity-80;
+}

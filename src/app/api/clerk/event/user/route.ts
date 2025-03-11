@@ -1,9 +1,10 @@
 import { env } from "@/env";
 import { db } from "@/server/db";
+import { tryCatch } from "@/utils/common";
 
 import { NextResponse } from "next/server";
 
-import type { WebhookEvent } from "@clerk/clerk-sdk-node";
+import type { WebhookEvent } from "@clerk/backend";
 
 import { Webhook } from "svix";
 
@@ -13,18 +14,15 @@ export async function POST(request: Request) {
 
 	const wh = new Webhook(env.CLERK_SIGNING_KEY);
 
-	try {
-		wh.verify(JSON.stringify(payload), headers);
-	} catch (err) {
-		return NextResponse.json({ error: new Error(err as string).message }, { status: 400 });
-	}
+	const { error } = await tryCatch(wh.verify(JSON.stringify(payload), headers));
+	if (error) return NextResponse.json({ error: error.message }, { status: 400 });
 
 	const { type, data } = payload;
 
 	switch (type) {
 		case "user.created": {
-			const main_email = data.email_addresses.filter((email) => email.id === data.primary_email_address_id)[0]!;
-			const main_phoneNum = data.phone_numbers.filter((phone) => phone.id === data.primary_phone_number_id)[0];
+			const main_email = data.email_addresses.find((email) => email.id === data.primary_email_address_id)!;
+			const main_phoneNum = data.phone_numbers.find((phone) => phone.id === data.primary_phone_number_id);
 
 			await db.taiKhoan.create({
 				data: {
@@ -52,18 +50,9 @@ export async function POST(request: Request) {
 			break;
 		}
 
-		case "user.deleted": {
-			await db.taiKhoan.delete({
-				where: { MaTaiKhoan: data.id },
-				include: { KhachHang: true },
-			});
-
-			break;
-		}
-
 		case "user.updated": {
-			const main_email = data.email_addresses.filter((email) => email.id === data.primary_email_address_id)[0]!;
-			const main_phoneNum = data.phone_numbers.filter((phone) => phone.id === data.primary_phone_number_id)[0];
+			const main_email = data.email_addresses.find((email) => email.id === data.primary_email_address_id)!;
+			const main_phoneNum = data.phone_numbers.find((phone) => phone.id === data.primary_phone_number_id);
 
 			await db.taiKhoan.update({
 				where: { MaTaiKhoan: data.id },
@@ -79,6 +68,10 @@ export async function POST(request: Request) {
 
 			break;
 		}
+
+		case "user.deleted":
+			await db.taiKhoan.delete({ where: { MaTaiKhoan: data.id }, include: { KhachHang: true } });
+			break;
 	}
 
 	return NextResponse.json({ success: true });

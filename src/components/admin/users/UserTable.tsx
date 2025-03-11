@@ -34,7 +34,7 @@ import type { Role } from "@prisma/client";
 
 import { ChevronDown, ChevronDownIcon, RotateCcw, SearchIcon } from "lucide-react";
 import { type ChangeEvent, useCallback, useMemo, useState } from "react";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 export type UserType = RouterOutputs["admin"]["getUsers"]["data"][number];
 

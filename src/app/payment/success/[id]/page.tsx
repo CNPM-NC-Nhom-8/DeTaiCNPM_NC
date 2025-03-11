@@ -1,9 +1,10 @@
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+
 import { api } from "@/utils/trpc/server";
 
 import Link from "next/link";
 import { redirect } from "next/navigation";
-
-import { Button, Card, CardBody, CardFooter } from "@nextui-org/react";
 
 import { LucideBadgeCheck } from "lucide-react";
 
@@ -12,22 +13,29 @@ export default async function Page({ params: { id } }: { params: { id: string } 
 	if (!paymentDetail) redirect("/cart");
 
 	return (
-		<main className="container flex max-w-2xl flex-grow items-center gap-4 px-6 pt-4">
-			<Card className="w-full" shadow="sm">
-				<CardBody className="py-10">
-					<div className="flex flex-col items-center justify-center gap-4 text-lg font-semibold text-success">
-						<LucideBadgeCheck size={100} />
-						<h2>Thanh toán thành công!</h2>
-						<p>
-							Đơn hàng &quot;{paymentDetail.MaDonHang.split("-").at(0)}&quot; sẽ được giao tới địa chỉ của
-							bạn!
-						</p>
-					</div>
-				</CardBody>
+		<main className="container flex max-w-2xl flex-grow items-center gap-4 px-6 py-4">
+			<Card className="w-full shadow-sm">
+				<CardHeader className="flex flex-row items-center justify-center gap-2 text-success">
+					<LucideBadgeCheck size={20} />
+					<CardTitle className="text-lg font-semibold">Thanh toán thành công!</CardTitle>
+					<LucideBadgeCheck size={20} />
+				</CardHeader>
 
-				<CardFooter className="flex flex-wrap items-center justify-center gap-4 pb-10">
-					<Button as={Link} href="/" color="primary" variant="shadow">
-						Mua tiếp
+				<CardContent>
+					<div className="flex flex-col items-center justify-center gap-4 text-center">
+						<p>Đơn hàng &quot;{paymentDetail.MaDonHang}&quot; sẽ được giao tới địa chỉ của bạn!</p>
+					</div>
+				</CardContent>
+
+				<CardFooter className="gap-2">
+					<Button asChild className="w-full border border-border" variant="link">
+						<Link href="/">Mua tiếp</Link>
+					</Button>
+
+					<Button asChild className="w-full border border-border" variant="link">
+						<Link href={"/auth/account/history/payment/detail/" + paymentDetail.MaDonHang}>
+							Xem đơn hàng
+						</Link>
 					</Button>
 				</CardFooter>
 			</Card>

@@ -1,9 +1,10 @@
-import { BottomFooter } from "@/components/layout/BottomFooter";
-import { MainLayout } from "@/components/layout/MainLayout";
-import { MainNavbar } from "@/components/layout/MainNavbar";
-import { cn } from "@/utils/common";
+import { BottomFooter } from "@/components/layout/bottom-footer";
+import { Providers } from "@/components/layout/providers";
+import { TopNavbar } from "@/components/layout/top-navbar";
+import { Toaster } from "@/components/ui/sonner";
 
-import "./globals.css";
+import "@/styles/globals.css";
+import { cn } from "@/utils/common";
 
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
@@ -12,12 +13,7 @@ import { viVN } from "@clerk/localizations";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Analytics } from "@vercel/analytics/react";
 
-import { Toaster } from "react-hot-toast";
-
 const inter = Inter({ subsets: ["latin"] });
-
-export const dynamic = "force-dynamic",
-	fetchCache = "default-no-store";
 
 export const metadata: Metadata = {
 	title: {
@@ -42,19 +38,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 		<ClerkProvider localization={viVN}>
 			<html lang="en" suppressHydrationWarning>
 				<body className={cn(inter.className, "antialiased")}>
-					<MainLayout>
-						<MainNavbar />
+					<Providers>
+						<TopNavbar />
 						{children}
 						<BottomFooter />
-					</MainLayout>
+					</Providers>
 
-					<Toaster
-						toastOptions={{
-							position: "top-right",
-							style: { borderRadius: "12px", background: "#333", color: "#fff" },
-						}}
-					/>
-
+					<Toaster />
 					<Analytics />
 				</body>
 			</html>

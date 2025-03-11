@@ -9,7 +9,7 @@ export default function SignInPage() {
 	const { theme } = useTheme();
 
 	return (
-		<div className="container mx-auto flex flex-1 items-center justify-center py-5">
+		<div className="container mx-auto flex flex-1 items-center justify-center py-4">
 			<SignIn appearance={{ baseTheme: theme === "dark" ? dark : undefined }} />
 		</div>
 	);

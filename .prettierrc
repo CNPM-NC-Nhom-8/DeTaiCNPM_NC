@@ -8,6 +8,7 @@
 	"importOrderSortSpecifiers": true,
 	"importOrder": [
 		"^(server|client)-only$",
+		"^@/components/(.*)$",
 		"^@/(.*)$",
 		"^\\.(.*)$",
 		"^next(.*)$",
