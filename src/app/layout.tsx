@@ -13,6 +13,8 @@ import { viVN } from "@clerk/localizations";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Analytics } from "@vercel/analytics/react";
 
+import { Suspense } from "react";
+
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -38,11 +40,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 		<ClerkProvider localization={viVN}>
 			<html lang="en" suppressHydrationWarning>
 				<body className={cn(inter.className, "antialiased")}>
-					<Providers>
-						<TopNavbar />
-						{children}
-						<BottomFooter />
-					</Providers>
+					<Suspense>
+						<Providers>
+							<TopNavbar />
+							{children}
+							<BottomFooter />
+						</Providers>
+					</Suspense>
 
 					<Toaster />
 					<Analytics />
