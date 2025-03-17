@@ -16,21 +16,19 @@ Disclaimer: Đây chỉ là 1 đồ án được thực hiện với mục đíc
 
 - [Nodejs](https://nodejs.org/en) - Phiên bản 20 trở lên (khuyến khích là 20.9.0)
 - [Git](https://git-scm.com/)
+- [Bun](https://bun.sh)
 
-### 2. Cài đặt Pnpm (Không bắt buộc, nhưng khuyến khích dùng, hoặc nếu đã có)
-
-- Thông tin thêm về [pnpm](https://pnpm.io/)
+### 2. Cài đặt Bun
 
 ```bash
-corepack enable
-corepack prepare --activate pnpm@latest
+curl -fsSL https://bun.sh/install | bash
 ```
 
-- Kiểm tra xem pnpm đã được cài chưa
+- Kiểm tra xem Bun đã được cài chưa
 
 ```bash
-pnpm -v
-# 8.10.4
+bun -v
+# 1.2.5
 ```
 
 ### 3. Lấy đề án từ github (Không bắt buộc nếu đã có từ trước)
@@ -48,17 +46,13 @@ cd DeTaiCNPM_NC
 ### 4. Cài đặt các package cần thiết
 
 ```bash
-pnpm i
-
-# Hoặc
-
-pnpm install
+bun install
 ```
 
 ### 5. Chạy server dev
 
 ```bash
-pnpm dev # Mặc định chạy trên port 3000
+bun dev # Mặc định chạy trên port 3000
 
 # Output
    ▲ Next.js 14.0.1
@@ -67,12 +61,11 @@ pnpm dev # Mặc định chạy trên port 3000
 
 # Hoặc
 
-pnpm dev -p 3001 # Chạy trên port 3001, số port có thể thay đổi
+bun dev --port 3001 # Chạy trên port 3001, số port có thể thay đổi
 # Output
    ▲ Next.js 14.0.1
    - Local:        http://localhost:3001
    - Environments: .env
-
 ```
 
 ### 6. Đẩy phần code mới lên
