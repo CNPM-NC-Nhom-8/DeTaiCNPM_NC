@@ -24,6 +24,7 @@ import z from "zod";
 
 export function PhoneOrderOptions({ data }: { data: RouterOutputs["product"]["getSanPham"] }) {
 	const router = useRouter();
+	const apiUtils = api.useUtils();
 
 	const storagesAndAvaiableColors = useMemo(
 		() =>
@@ -89,8 +90,8 @@ export function PhoneOrderOptions({ data }: { data: RouterOutputs["product"]["ge
 	}, [data.SanPhamBienThe, options.color, options.storage]);
 
 	const addToCart = api.cart.addItemIntoCart.useMutation({
-		onSuccess: () => router.refresh(),
 		onError: ({ message }) => toast.error("Lỗi: " + message),
+		onSuccess: () => void apiUtils.cart.getCartAmount.refetch(),
 	});
 
 	return (

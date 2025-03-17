@@ -2,8 +2,6 @@ import { api } from "@/utils/trpc/react";
 
 import { Button } from "../ui/button";
 
-import { useRouter } from "next/navigation";
-
 import type { MatHang, SanPhamBienThe } from "@prisma/client";
 
 import { LoaderIcon, ShoppingCart } from "lucide-react";
@@ -15,14 +13,14 @@ type ParamsType = {
 };
 
 export function AddToCart({ data, productName }: ParamsType) {
-	const router = useRouter();
+	const apiUtils = api.useUtils();
 
 	const addToCart = api.cart.addItemIntoCart.useMutation({
 		onError: ({ message }) => toast.error("Lỗi: " + message),
 		onMutate: () => toast.loading(`Đang thêm ${productName} vào giỏ hàng`, { id: `add-to-cart-${data.MaSP}` }),
 		onSuccess: () => {
+			void apiUtils.cart.getCartAmount.refetch();
 			toast.success(`Thêm ${productName} vào giỏ hàng thành công`, { id: `add-to-cart-${data.MaSP}` });
-			router.refresh();
 		},
 	});
 

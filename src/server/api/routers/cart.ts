@@ -49,6 +49,11 @@ export const cartRouter = createTRPCRouter({
 			});
 		}),
 
+	getCartAmount: publicProcedure.query(async ({ ctx }) => {
+		if (!ctx.user.userId) return 0;
+		return ctx.db.cartItem.count({ where: { MaKhachHang: ctx.user.userId } });
+	}),
+
 	getCartItems: publicProcedure.query(async ({ ctx }) => {
 		if (!ctx.user.userId) return [];
 

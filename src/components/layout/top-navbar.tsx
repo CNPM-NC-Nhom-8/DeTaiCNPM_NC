@@ -8,6 +8,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
 import { api } from "@/utils/trpc/server";
 
 import { CartNavbar } from "../cart/cart-navbar";
@@ -33,7 +34,7 @@ export function TopNavbar() {
 
 				<section className="flex flex-1 items-center justify-end gap-2 justify-self-end">
 					<SearchBar />
-					<CartNavbar />
+					<CartNavbar amountPromise={api.cart.getCartAmount()} />
 					<ThemeSwitcher />
 
 					<Suspense

@@ -13,7 +13,6 @@ import { InsuranceTypeOptions } from "../phone/data";
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 import type { Insurance } from "@prisma/client";
 
@@ -21,13 +20,16 @@ import { LoaderIcon, Minus, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export function CartItem({ item }: { item: RouterOutputs["cart"]["getCartItems"][number] }) {
-	const router = useRouter();
+	const apiUtils = api.useUtils();
 	const insuranceType = InsuranceTypeOptions.find(({ type }) => type === item.InsuranceType);
 
 	const updateCartItem = api.cart.updateCartItem.useMutation({
-		onSuccess: async () => router.refresh(),
 		onError: ({ message }) => toast.error("Lỗi: " + message),
+		onSuccess: () =>
+			Promise.allSettled([apiUtils.cart.getCartItems.refetch(), apiUtils.cart.getCartAmount.refetch()]),
 	});
+
+	if (updateCartItem.variables?.data.type === "delete" && updateCartItem.isSuccess) return null;
 
 	return (
 		<Card

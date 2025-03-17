@@ -18,16 +18,16 @@ export default async function Home() {
 		<main className="container flex max-w-6xl flex-grow flex-col gap-6 px-6 py-4">
 			<Showcase />
 
-			<section className="grid grid-cols-5 gap-4">
-				<h3 className="col-span-5 text-2xl font-bold">Điện thoại phổ biến</h3>
+			<section className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+				<h3 className="col-span-full text-2xl font-bold">Điện thoại phổ biến</h3>
 
 				<Suspense fallback={<PhonesSectionSkeletons id="popular-phones" />}>
 					<PopularPhonesSection isSignedIn={user.userId !== null} includeFavor={includeFavor} />
 				</Suspense>
 			</section>
 
-			<section className="grid grid-cols-5 gap-4">
-				<h3 className="col-span-5 text-2xl font-bold">Điện thoại mới</h3>
+			<section className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+				<h3 className="col-span-full text-2xl font-bold">Điện thoại mới</h3>
 
 				<Suspense fallback={<PhonesSectionSkeletons id="recent-phones" />}>
 					<RecentPhonesSection isSignedIn={user.userId !== null} includeFavor={includeFavor} />
