@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, LoaderIcon, SearchX } from "lucide-react";
 import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
-import { type ComponentPropsWithoutRef, use } from "react";
+import { type ComponentPropsWithoutRef, Suspense, use, useState } from "react";
 
 const pageSizes = [20, 40, 60, 80, 100] as const;
 
@@ -22,6 +22,8 @@ type SearchContentProps = ComponentPropsWithoutRef<"div"> & {
 };
 
 export function SearchContent({ className, hangSXPromise, isSignedIn, ...rest }: SearchContentProps) {
+	const [amount, setAmount] = useState<number | null>(null);
+
 	const [searchQuery, setSearchQuery] = useQueryState("query", parseAsString.withDefault(""));
 	const [hangSXQuery, setHangSXQuery] = useQueryState("hangSX", parseAsString);
 
@@ -31,18 +33,11 @@ export function SearchContent({ className, hangSXPromise, isSignedIn, ...rest }:
 	const debouncedSearchQuery = useDebounce(searchQuery, 500);
 	const hangSX = use(hangSXPromise);
 
-	const [searchData, { isLoading }] = api.product.searchProduct.useSuspenseQuery({
-		pageIndex,
-		pageSize,
-		query: { hangSX: hangSXQuery, value: debouncedSearchQuery },
-	});
-	const totalPages = Math.ceil((searchData?.count ?? 0) / pageSize);
-
 	return (
 		<div {...rest} className={cn("flex flex-grow flex-col gap-2", className)}>
 			<section className="flex flex-shrink-0 flex-col gap-2">
 				<h3 className="text-lg font-semibold">
-					Kết quả tìm kiếm &quot;{debouncedSearchQuery}&quot; ({searchData?.count ?? 0}){" "}
+					Kết quả tìm kiếm &quot;{debouncedSearchQuery}&quot; ({amount ?? "..."}){" "}
 				</h3>
 
 				<div className="flex items-center gap-2">
@@ -86,22 +81,67 @@ export function SearchContent({ className, hangSXPromise, isSignedIn, ...rest }:
 				</div>
 			</section>
 
-			<section className="flex flex-grow">
-				{isLoading && (
+			<Suspense
+				fallback={
 					<div className="flex flex-grow flex-col items-center justify-center gap-2">
 						<LoaderIcon size={20} className="animate-spin" />
 						<span>Đang tải dữ liệu...</span>
 					</div>
-				)}
+				}
+			>
+				<ListSearchItem
+					pageSize={pageSize}
+					pageIndex={pageIndex}
+					hangSXQuery={hangSXQuery ?? ""}
+					isSignedIn={isSignedIn ?? false}
+					debouncedSearchQuery={debouncedSearchQuery}
+					setPageIndex={setPageIndex}
+					onFinish={(amount) => setAmount(amount)}
+				/>
+			</Suspense>
+		</div>
+	);
+}
 
-				{!isLoading && searchData.data.length === 0 && (
+type ListSearchItemProps = ComponentPropsWithoutRef<"div"> & {
+	isSignedIn: boolean;
+	hangSXQuery: string;
+	debouncedSearchQuery: string;
+	pageSize: number;
+	pageIndex: number;
+	setPageIndex: (value: number | ((old: number) => number | null) | null) => void;
+	onFinish: (amount: number) => void;
+};
+
+function ListSearchItem({
+	isSignedIn,
+	hangSXQuery,
+	debouncedSearchQuery,
+	pageSize,
+	pageIndex,
+	setPageIndex,
+	onFinish,
+}: ListSearchItemProps) {
+	const [searchData] = api.product.searchProduct.useSuspenseQuery({
+		pageIndex,
+		pageSize,
+		query: { hangSX: hangSXQuery, value: debouncedSearchQuery },
+	});
+
+	const totalPages = Math.ceil((searchData?.count ?? 0) / pageSize);
+	onFinish(searchData?.count ?? 0);
+
+	return (
+		<>
+			<section className="flex flex-grow">
+				{searchData.data.length === 0 && (
 					<div className="flex flex-grow flex-col items-center justify-center gap-2">
 						<SearchX size={48} />
 						<span>Không tìm thấy sản phẩm nào</span>
 					</div>
 				)}
 
-				{!isLoading && searchData.data.length > 0 && (
+				{searchData.data.length > 0 && (
 					<div className="grid h-full grid-cols-5 gap-2">
 						{searchData.data.map((product) => (
 							<PhoneCard key={product.MaSPM} sanPhamMau={product} isSignedIn={isSignedIn} />
@@ -114,7 +154,7 @@ export function SearchContent({ className, hangSXPromise, isSignedIn, ...rest }:
 				<Button
 					size="icon"
 					variant="outline"
-					disabled={totalPages <= 1 || isLoading || pageIndex === 1}
+					disabled={totalPages <= 1 || pageIndex === 1}
 					onMouseDown={() => setPageIndex(1)}
 				>
 					<ChevronsLeft className="size-4" />
@@ -123,7 +163,7 @@ export function SearchContent({ className, hangSXPromise, isSignedIn, ...rest }:
 				<Button
 					size="icon"
 					variant="outline"
-					disabled={totalPages <= 1 || isLoading || pageIndex === 0}
+					disabled={totalPages <= 1 || pageIndex === 0}
 					onMouseDown={() => setPageIndex((prev) => prev - 1)}
 				>
 					<ChevronLeft className="size-4" />
@@ -138,7 +178,7 @@ export function SearchContent({ className, hangSXPromise, isSignedIn, ...rest }:
 				<Button
 					size="icon"
 					variant="outline"
-					disabled={totalPages <= 1 || isLoading || pageIndex === totalPages}
+					disabled={totalPages <= 1 || pageIndex === totalPages}
 					onMouseDown={() => setPageIndex((prev) => prev + 1)}
 				>
 					<ChevronRight className="size-4" />
@@ -147,12 +187,12 @@ export function SearchContent({ className, hangSXPromise, isSignedIn, ...rest }:
 				<Button
 					size="icon"
 					variant="outline"
-					disabled={totalPages <= 1 || isLoading || pageIndex === totalPages}
+					disabled={totalPages <= 1 || pageIndex === totalPages}
 					onMouseDown={() => setPageIndex(totalPages)}
 				>
 					<ChevronsRight className="size-4" />
 				</Button>
 			</section>
-		</div>
+		</>
 	);
 }

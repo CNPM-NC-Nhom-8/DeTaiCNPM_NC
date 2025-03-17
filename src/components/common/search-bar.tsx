@@ -1,5 +1,7 @@
 "use client";
 
+import { useDebounce } from "@/utils/hooks/useDebounce";
+
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 
@@ -11,6 +13,7 @@ import { parseAsString, useQueryState } from "nuqs";
 export function SearchBar() {
 	const router = useRouter();
 	const [searchQuery] = useQueryState("query", parseAsString.withDefault(""));
+	const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
 	function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
 		e.preventDefault();
@@ -36,7 +39,7 @@ export function SearchBar() {
 					autoComplete="off"
 					className="rounded-none"
 					placeholder="Nhập từ khóa để tìm kiếm"
-					defaultValue={searchQuery}
+					defaultValue={debouncedSearchQuery}
 				/>
 			</div>
 
