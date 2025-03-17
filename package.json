@@ -12,7 +12,9 @@
 		"type-check": "tsc --noEmit",
 		"postinstall": "prisma generate",
 		"db:push": "prisma db push",
-		"db:studio": "prisma studio --browser none"
+		"db:studio": "prisma studio --browser none",
+		"db:generate": "prisma generate",
+		"db:migrate": "prisma migrate"
 	},
 	"dependencies": {
 		"@clerk/elements": "^0.23.2",

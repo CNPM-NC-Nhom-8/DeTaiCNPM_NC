@@ -27,7 +27,9 @@ enum Insurance {
 }
 
 model CartItem {
-  MaCartItem String @id @default(uuid())
+  MaCartItem String   @id @default(uuid())
+  addedAt    DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
 
   Quantity      Int
   InsuranceType Insurance @default(None)
