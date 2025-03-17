@@ -18,8 +18,8 @@ export function ListItemCart() {
 	return (
 		<>
 			<section className="flex w-full flex-grow flex-col gap-2">
-				{cart.map((item) => (
-					<CartItem key={item.MaCartItem} item={item} />
+				{cart.map((item, index) => (
+					<CartItem key={item.MaCartItem} item={item} index={index + 1} />
 				))}
 			</section>
 

@@ -19,14 +19,13 @@ import type { Insurance } from "@prisma/client";
 import { LoaderIcon, Minus, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
-export function CartItem({ item }: { item: RouterOutputs["cart"]["getCartItems"][number] }) {
+export function CartItem({ item, index }: { item: RouterOutputs["cart"]["getCartItems"][number]; index: number }) {
 	const apiUtils = api.useUtils();
 	const insuranceType = InsuranceTypeOptions.find(({ type }) => type === item.InsuranceType);
 
 	const updateCartItem = api.cart.updateCartItem.useMutation({
 		onError: ({ message }) => toast.error("Lỗi: " + message),
-		onSuccess: () =>
-			Promise.allSettled([apiUtils.cart.getCartItems.refetch(), apiUtils.cart.getCartAmount.refetch()]),
+		onSuccess: () => void apiUtils.cart.invalidate(),
 	});
 
 	if (updateCartItem.variables?.data.type === "delete" && updateCartItem.isSuccess) return null;
@@ -35,6 +34,10 @@ export function CartItem({ item }: { item: RouterOutputs["cart"]["getCartItems"]
 		<Card
 			aria-disabled={updateCartItem.isPending}
 			className="aira-disabled:pointer-events-none aria-disabled:opacity-50"
+			aria-label={`Sản phẩm ${index}`}
+			aria-describedby={`Sản phẩm ${index}`}
+			aria-live="polite"
+			title={`Ngày thêm vào giỏ hàng: ${item.addedAt.toLocaleString()}`}
 		>
 			<CardContent className="flex p-3">
 				<Link className="flex w-2/3 gap-4" href={"/phone/" + encodeURIComponent(item.SanPham.SanPhamMau.TenSP)}>
@@ -66,20 +69,24 @@ export function CartItem({ item }: { item: RouterOutputs["cart"]["getCartItems"]
 				</Link>
 
 				<div className="relative flex flex-grow flex-col items-end gap-2">
-					<Button
-						size="icon"
-						variant="destructive"
-						disabled={updateCartItem.isPending}
-						onMouseDown={() =>
-							updateCartItem.mutate({ MaCartItem: item.MaCartItem, data: { type: "delete" } })
-						}
-					>
-						{updateCartItem.isPending ? (
-							<LoaderIcon size={16} className="animate-spin" />
-						) : (
-							<Trash2 size={16} />
-						)}
-					</Button>
+					<div className="flex items-center gap-2">
+						<span className="text-sm text-gray">#{index}</span>
+
+						<Button
+							size="icon"
+							variant="destructive"
+							disabled={updateCartItem.isPending}
+							onMouseDown={() =>
+								updateCartItem.mutate({ MaCartItem: item.MaCartItem, data: { type: "delete" } })
+							}
+						>
+							{updateCartItem.isPending ? (
+								<LoaderIcon size={16} className="animate-spin" />
+							) : (
+								<Trash2 size={16} />
+							)}
+						</Button>
+					</div>
 
 					<div className="flex items-center">
 						<Button
@@ -151,9 +158,15 @@ export function CartItem({ item }: { item: RouterOutputs["cart"]["getCartItems"]
 					</SelectContent>
 				</Select>
 
-				<span className="col-span-2 text-sm">
-					Bảo hiểm: {insuranceType?.title ?? "Không có"} ({moneyFormat.format(insuranceType?.price ?? 0)})
-				</span>
+				<div className="col-span-2 flex w-full items-center justify-between gap-2 text-sm">
+					<span>
+						Bảo hiểm: {insuranceType?.title ?? "Không có"} ({moneyFormat.format(insuranceType?.price ?? 0)})
+					</span>
+
+					<span>
+						Tổng tiền: {moneyFormat.format(item.SanPham.Gia * item.Quantity + (insuranceType?.price ?? 0))}
+					</span>
+				</div>
 			</CardFooter>
 		</Card>
 	);

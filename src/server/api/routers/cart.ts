@@ -61,7 +61,7 @@ export const cartRouter = createTRPCRouter({
 			where: { MaKhachHang: ctx.user.userId },
 			include: { SanPham: { include: { SanPhamMau: true, MatHang: true } } },
 			orderBy: [
-				{ addedAt: "desc" },
+				{ addedAt: "asc" },
 				{ SanPham: { SanPhamMau: { TenSP: "asc" } } },
 				{ SanPham: { DungLuong: "asc" } },
 				{ SanPham: { Mau: "asc" } },
@@ -153,8 +153,8 @@ export const cartRouter = createTRPCRouter({
 			z.object({
 				MaCartItem: z.string(),
 				data: z.discriminatedUnion("type", [
-					z.object({ type: z.literal("update"), insuranceType: z.custom<Insurance>() }),
 					z.object({ type: z.literal("delete") }),
+					z.object({ type: z.literal("update"), insuranceType: z.custom<Insurance>() }),
 					z.object({ type: z.literal("quanlity"), option: z.enum(["increase", "decrease"]) }),
 				]),
 			}),
