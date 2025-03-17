@@ -61,6 +61,7 @@ export const cartRouter = createTRPCRouter({
 			where: { MaKhachHang: ctx.user.userId },
 			include: { SanPham: { include: { SanPhamMau: true, MatHang: true } } },
 			orderBy: [
+				{ addedAt: "desc" },
 				{ SanPham: { SanPhamMau: { TenSP: "asc" } } },
 				{ SanPham: { DungLuong: "asc" } },
 				{ SanPham: { Mau: "asc" } },
