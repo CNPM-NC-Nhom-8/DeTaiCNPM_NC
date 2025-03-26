@@ -2,6 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 import { moneyFormat } from "@/utils/common";
 import { api } from "@/utils/trpc/react";
@@ -16,9 +18,19 @@ import { Select, SelectItem } from "@nextui-org/react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-export const PaymentFooter = ({ cart }: { cart: RouterOutputs["cart"]["getCartItems"] }) => {
+type PayingMethod = RouterInputs["cart"]["payment"]["payingData"]["method"];
+
+type PaymentFooterProps = {
+	cart: RouterOutputs["cart"]["getCartItems"];
+	defaultAddress?: string | null;
+};
+
+export const PaymentFooter = ({ cart, defaultAddress }: PaymentFooterProps) => {
 	const router = useRouter();
-	const [paymentMethod, setMethod] = useState<RouterInputs["cart"]["payment"]["paymentMethod"]>("None");
+
+	const [paymentMethod, setMethod] = useState<PayingMethod>("None");
+	const [address, setAddress] = useState(defaultAddress ?? "");
+	const [creditCard, setCreditCard] = useState("");
 
 	const payment = api.cart.payment.useMutation({
 		onSuccess: async (data) => {
@@ -31,7 +43,7 @@ export const PaymentFooter = ({ cart }: { cart: RouterOutputs["cart"]["getCartIt
 	return (
 		<div className="flex flex-col gap-4">
 			<Card>
-				<CardContent className="flex p-3">
+				<CardContent className="flex flex-col gap-2 p-3">
 					<Select
 						label="Phương thức thanh toán"
 						labelPlacement="outside"
@@ -57,6 +69,34 @@ export const PaymentFooter = ({ cart }: { cart: RouterOutputs["cart"]["getCartIt
 							</SelectItem>
 						)}
 					</Select>
+
+					<div className="flex flex-col gap-1">
+						<Label className="text-xs" htmlFor="address">
+							Địa chỉ nhận hàng <span className="text-red-500">*</span>
+						</Label>
+						<Input
+							required={!defaultAddress || defaultAddress.length < 10}
+							id="address"
+							placeholder="Địa chỉ nhận hàng"
+							value={address}
+							onChange={(event) => setAddress(event.target.value)}
+						/>
+					</div>
+
+					{paymentMethod === "Bank" && (
+						<div className="flex flex-col gap-1">
+							<Label className="text-xs" htmlFor="creditCard">
+								Số thẻ tín dụng <span className="text-red-500">*</span>
+							</Label>
+							<Input
+								required
+								id="creditCard"
+								placeholder="Số thẻ tín dụng"
+								value={creditCard}
+								onChange={(event) => setCreditCard(event.target.value)}
+							/>
+						</div>
+					)}
 				</CardContent>
 			</Card>
 
@@ -83,7 +123,10 @@ export const PaymentFooter = ({ cart }: { cart: RouterOutputs["cart"]["getCartIt
 							variant="secondary"
 							disabled={payment.isPending || paymentMethod === "None"}
 							onMouseDown={() =>
-								payment.mutate({ maCartItems: cart.map((item) => item.MaCartItem), paymentMethod })
+								payment.mutate({
+									maCartItems: cart.map((item) => item.MaCartItem),
+									payingData: { method: paymentMethod, address, creditCard },
+								})
 							}
 						>
 							Thanh toán ngay ({cart.length})

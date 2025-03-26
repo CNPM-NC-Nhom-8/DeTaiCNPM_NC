@@ -13,8 +13,8 @@ export const AdminNavbar = () => {
 
 	return (
 		<aside className="w-full">
-			<Tabs defaultValue={defaultTab} className="w-full">
-				<TabsList>
+			<Tabs defaultValue={defaultTab}>
+				<TabsList className="w-full *:w-full">
 					<TabsTrigger asChild value="manage/users">
 						<Link href="/admin/manage/users">
 							<div className="flex items-center space-x-2">

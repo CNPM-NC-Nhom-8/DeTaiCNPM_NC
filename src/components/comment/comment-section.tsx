@@ -8,7 +8,7 @@ import { cn, dayjs } from "@/utils/common";
 import { api } from "@/utils/trpc/react";
 import type { RouterOutputs } from "@/utils/trpc/react";
 
-import { CommentTextArea } from "./comment-textarea";
+import { CommentTextarea } from "./comment-textarea";
 
 import { Flag, MessagesSquare, Reply, X } from "lucide-react";
 import { use, useMemo, useState } from "react";
@@ -23,16 +23,33 @@ export function CommentSection({ sanPham, userPromise }: ParamsType) {
 	const user = use(userPromise);
 
 	const [limit, setLimit] = useState(5);
-	const [data, { hasNextPage, refetch }] = api.danhGia.getDanhGia.useSuspenseInfiniteQuery(
+	const [data, { hasNextPage, refetch }] = api.comment.getDanhGia.useSuspenseInfiniteQuery(
 		{ maSPM: sanPham.MaSPM, limit: limit },
 		{ getNextPageParam: (lastPage) => lastPage.nextCursor },
 	);
 
 	const comments = useMemo(() => data.pages.flatMap(({ danhGia }) => danhGia), [data]);
 
+	if (comments.length === 0)
+		return (
+			<div className="flex flex-col gap-4 pt-4">
+				<h3 className="text-2xl font-bold">Đánh Giá</h3>
+
+				<div className="w-full">
+					<div className="flex h-full items-center justify-center gap-5">
+						<MessagesSquare strokeWidth={2} size={40} />
+						<span className="text-xl">Hãy là người đầu tiên bình luận</span>
+					</div>
+				</div>
+
+				<CommentTextarea maSPM={sanPham.MaSPM} />
+			</div>
+		);
+
 	return (
 		<div className="flex flex-col gap-4 pt-4">
 			<h3 className="text-2xl font-bold">Đánh Giá</h3>
+			<CommentTextarea maSPM={sanPham.MaSPM} />
 
 			<div className="flex flex-col gap-2">
 				{comments.map((comment) => (
@@ -43,48 +60,18 @@ export function CommentSection({ sanPham, userPromise }: ParamsType) {
 			{hasNextPage && <Button onMouseDown={() => setLimit((prev) => prev + 5)}>Tải thêm</Button>}
 		</div>
 	);
-
-	// if (comments.length === 0)
-	// 	return (
-	// 		<div className="flex flex-col gap-4 pt-4">
-	// 			<h3 className="text-2xl font-bold">Đánh Giá</h3>
-
-	// 			<div className="w-full">
-	// 				<div className="flex h-full items-center justify-center gap-5">
-	// 					<MessagesSquare strokeWidth={2} size={40} />
-	// 					<span className="text-xl">Hãy là người đầu tiên bình luận</span>
-	// 				</div>
-	// 			</div>
-
-	// 			<CommentTextArea maSPM={sanPham.MaSPM} user={user} refetch={refetch} />
-	// 		</div>
-	// 	);
-
-	// return (
-	// 	<div className="flex flex-col gap-4 pt-4">
-	// 		<CommentTextArea maSPM={sanPham.MaSPM} user={user} refetch={refetch} />
-
-	// 		<div className="flex flex-col gap-2">
-	// 			{comments.map((danhGia) => (
-	// 				<DanhGia key={sanPham.MaSPM} danhGia={danhGia} user={user} isTraLoi={false} refetch={refetch} />
-	// 			))}
-	// 		</div>
-
-	// 		{hasNextPage && <Button onMouseDown={() => setLimit((prev) => prev + 5)}>Tải thêm</Button>}
-	// 	</div>
-	// );
 }
 
 type DeleteButtonProps = {
 	user: RouterOutputs["common"]["getCurrentUser"] | null;
-	comment: RouterOutputs["danhGia"]["getDanhGia"]["danhGia"][number];
+	comment: RouterOutputs["comment"]["getDanhGia"]["danhGia"][number];
 	refetch: () => Promise<unknown>;
 };
 
 function DeleteButton({ user, comment, refetch }: DeleteButtonProps) {
 	const apiUtils = api.useUtils();
 
-	const xoaDanhGia = api.danhGia.deleteDanhGia.useMutation({
+	const xoaDanhGia = api.comment.deleteDanhGia.useMutation({
 		onSuccess: async () => {
 			await Promise.allSettled([
 				refetch(),
@@ -109,7 +96,7 @@ function DeleteButton({ user, comment, refetch }: DeleteButtonProps) {
 }
 
 type DanhGiaParams = {
-	comment: RouterOutputs["danhGia"]["getDanhGia"]["danhGia"][number];
+	comment: RouterOutputs["comment"]["getDanhGia"]["danhGia"][number];
 	user: RouterOutputs["common"]["getCurrentUser"] | null;
 	refetch: () => Promise<unknown>;
 	isReplied?: boolean;

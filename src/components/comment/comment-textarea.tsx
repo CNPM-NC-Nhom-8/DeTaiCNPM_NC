@@ -1,96 +1,75 @@
 "use client";
 
+import { commentStore } from "@/components/store";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+
+import { cn } from "@/utils/common";
 import { api } from "@/utils/trpc/react";
-import type { RouterOutputs } from "@/utils/trpc/react";
 
-import { Button, Input, Textarea, User } from "@nextui-org/react";
+import { Loader, SendHorizontal } from "lucide-react";
+import { type FormEvent, useState } from "react";
+import { useStore } from "zustand";
 
-import { SendHorizontal } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
+type ParamsType = { maSPM: string };
 
-type ParamsType = {
-	maSPM: string;
-	maTraLoi?: string;
-	user: RouterOutputs["common"]["getCurrentUser"];
-	refetch: () => Promise<unknown>;
-};
+export const CommentTextarea = ({ maSPM }: ParamsType) => {
+	const replyId = useStore(commentStore, (state) => state.replyId);
+	const clearReplyId = useStore(commentStore, (state) => state.clearReplyId);
 
-export function CommentTextArea({ maSPM, maTraLoi, user, refetch }: ParamsType) {
-	const [noiDung, setNoiDung] = useState("");
-	const [tenKhachHang, setTenKH] = useState(user ? (user.TenTaiKhoan ?? (user.Ho + " " + user.Ten).trim()) : "");
+	const [content, setNoiDung] = useState("");
+	const utils = api.useUtils();
 
-	const danhGia = api.danhGia.danhGiaBanTin.useMutation({
+	const comment = api.comment.addComment.useMutation({
 		onSuccess: async () => {
 			setNoiDung("");
-			setTenKH(user ? (user.TenTaiKhoan ?? (user.Ho + " " + user.Ten).trim()) : "");
+			clearReplyId();
 
-			await refetch();
+			if (replyId) await utils.comment.getTraLoi.invalidate({ id: replyId });
+			else await utils.comment.getDanhGia.invalidate({ maSPM });
 		},
-		onError: ({ message }) => toast.error("Lỗi: " + message),
 	});
 
+	const submitComment = (event?: FormEvent<HTMLFormElement>) => {
+		event?.preventDefault();
+		comment.mutate({ maSPM, content, replyId: replyId!, soSao: 5 });
+	};
+
 	return (
-		<div className="flex flex-col gap-2">
-			{!user && (
-				<Input
-					variant="bordered"
-					label="Tên"
-					labelPlacement="outside"
-					value={tenKhachHang}
-					onValueChange={setTenKH}
-					isInvalid={danhGia.isError}
-					placeholder="Nhập tên của bạn"
-					color={danhGia.isError ? "danger" : "primary"}
-				/>
-			)}
+		<div>
+			<form className="space-y-4" onSubmit={submitComment}>
+				<div>
+					<Textarea
+						id="comment-textarea"
+						value={content}
+						onChange={(e) => setNoiDung(e.target.value)}
+						placeholder="Viết cảm nhận của bạn về sản phẩm này"
+						disabled={comment.isPending}
+						className={cn("w-full", { "border-destructive": comment.isError })}
+						rows={4}
+						onKeyDown={(e) => {
+							if (e.ctrlKey && e.key === "Enter" && content.length > 0) submitComment();
+						}}
+					/>
+					<div className={cn("flex justify-end", { "justify-between": comment.isError || replyId })}>
+						{comment.isError && <span className="text-sm text-destructive">{comment.error.message}</span>}
+						{replyId && <span className="text-sm">Bình luận đã được trả lời</span>}
+						<span className="text-sm text-muted-foreground">{content.length} ký tự</span>
+					</div>
+				</div>
 
-			<Textarea
-				isInvalid={danhGia.isError}
-				label="Đánh giá"
-				variant="bordered"
-				labelPlacement="outside"
-				color={danhGia.isError ? "danger" : "primary"}
-				classNames={{ helperWrapper: "right-0" }}
-				placeholder="Viết cảm nhận của bạn về sản phẩm này"
-				errorMessage={danhGia.isError ? danhGia.error.message : undefined}
-				description={<span>{noiDung.length} ký tự</span>}
-				value={noiDung}
-				onValueChange={setNoiDung}
-				onKeyDown={(e) => {
-					if (e.ctrlKey && e.key === "Enter") {
-						danhGia.mutate({
-							maSPM,
-							noiDung,
-							maKhachHang: user?.MaTaiKhoan,
-							maTraLoi,
-							soSao: 5,
-							tenKhachHang,
-						});
-					}
-				}}
-			/>
-
-			<div className="flex w-full items-center justify-between gap-4">
-				{user && <User name={user.TenTaiKhoan} avatarProps={{ src: user.AnhDaiDien }} />}
-
-				<Button
-					isIconOnly
-					isLoading={danhGia.isPending}
-					endContent={danhGia.isPending ? undefined : <SendHorizontal size={20} />}
-					color="primary"
-					onPress={() => {
-						danhGia.mutate({
-							maSPM,
-							noiDung,
-							maKhachHang: user?.MaTaiKhoan,
-							maTraLoi,
-							soSao: 5,
-							tenKhachHang,
-						});
-					}}
-				/>
-			</div>
+				<div className="flex justify-end">
+					<Button type="submit" className="px-4 py-2 text-sm">
+						{comment.isPending && <Loader className="animate-spin" />}
+						{!comment.isPending && (
+							<span>
+								Gửi
+								<SendHorizontal className="ml-2 inline-block" size={20} />
+							</span>
+						)}
+					</Button>
+				</div>
+			</form>
 		</div>
 	);
-}
+};

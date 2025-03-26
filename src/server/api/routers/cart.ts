@@ -5,6 +5,7 @@ import { authProcedure, createTRPCRouter, publicProcedure } from "../trpc";
 import type { Insurance } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 
+import validateCard from "card-validator";
 import z from "zod";
 
 export const cartRouter = createTRPCRouter({
@@ -70,22 +71,49 @@ export const cartRouter = createTRPCRouter({
 	}),
 
 	payment: publicProcedure
-		.input(z.object({ maCartItems: z.string().array(), paymentMethod: z.enum(["Cash", "Bank", "None"]) }))
+		.input(
+			z.object({
+				maCartItems: z.string().array(),
+				payingData: z.discriminatedUnion("method", [
+					z.object({ method: z.literal("None") }),
+					z.object({ method: z.literal("Cash"), address: z.string().min(10) }),
+					z.object({
+						method: z.literal("Bank"),
+						creditCard: z.string().min(16),
+						address: z.string().min(10),
+					}),
+				]),
+			}),
+		)
 		.mutation(async ({ ctx, input }) => {
 			if (!ctx.user.userId) return;
-			if (input.paymentMethod === "None")
+			if (input.payingData.method === "None") {
 				throw new TRPCError({ code: "BAD_REQUEST", message: "Bạn chưa chọn phương thức thanh toán." });
+			}
 
 			const currentUser = await ctx.db.taiKhoan.findFirst({
 				where: { MaTaiKhoan: ctx.user.userId },
 				include: { KhachHang: true },
 			});
 
-			if (!currentUser || !currentUser.KhachHang)
+			if (!currentUser || !currentUser.KhachHang) {
 				throw new TRPCError({
 					code: "PRECONDITION_FAILED",
 					message: "Vui lòng liên hệ quản trị viên nếu bạn gặp lỗi này!",
 				});
+			}
+
+			if (input.payingData.method === "Cash" && !currentUser.KhachHang.DiaChi && !input.payingData.address) {
+				throw new TRPCError({ code: "BAD_REQUEST", message: "Bạn chưa nhập địa chỉ." });
+			}
+
+			if (input.payingData.method === "Bank" && !input.payingData.creditCard) {
+				throw new TRPCError({ code: "BAD_REQUEST", message: "Bạn chưa nhập số thẻ tín dụng." });
+			}
+
+			if (input.payingData.method === "Bank" && !validateCard.number(input.payingData.creditCard).isValid) {
+				throw new TRPCError({ code: "BAD_REQUEST", message: "Số thẻ tín dụng không hợp lệ." });
+			}
 
 			const data = await ctx.db.cartItem.findMany({
 				where: { MaCartItem: { in: input.maCartItems }, MaKhachHang: currentUser.MaTaiKhoan },
@@ -94,12 +122,13 @@ export const cartRouter = createTRPCRouter({
 
 			const isInStock = data.every((item) => item.SanPham.MatHang!.TonKho - item.Quantity >= 0);
 
-			if (!isInStock)
+			if (!isInStock) {
 				throw new TRPCError({
 					code: "BAD_REQUEST",
 					message:
 						"1 hoặc nhiều sản phẩm trong giỏ hàng của bạn đã hết hàng hoặc không còn đủ với số lượng bạn mua!",
 				});
+			}
 
 			// Xóa các item trong giỏ hàng
 			await ctx.db.cartItem.deleteMany({
@@ -109,10 +138,10 @@ export const cartRouter = createTRPCRouter({
 			// Tạo 1 đơn hàng mới
 			const paymentDetail = await ctx.db.donHang.create({
 				data: {
-					DiaChi: currentUser.KhachHang.DiaChi ?? "Không có",
+					DiaChi: input.payingData.address ?? currentUser.KhachHang.DiaChi ?? "Không có",
 					Email: currentUser.Email,
-					HoTen: (currentUser.Ho ?? "" + " " + currentUser.Ten ?? "").trim(),
-					PhuongThucTT: input.paymentMethod,
+					HoTen: [currentUser?.Ho, currentUser?.Ten].join(" ").trim(),
+					PhuongThucTT: input.payingData.method,
 					SDT: currentUser.SDT ?? "Không có",
 					TongTien: data.reduce(
 						(prev, curr) =>

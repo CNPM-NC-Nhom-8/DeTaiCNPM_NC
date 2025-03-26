@@ -4,10 +4,10 @@ import { TRPCError } from "@trpc/server";
 
 import z from "zod";
 
-export const danhGiaRouter = createTRPCRouter({
-	getTraLoi: publicProcedure.input(z.object({ maDanhGia: z.string() })).query(async ({ ctx, input }) => {
+export const commentRouter = createTRPCRouter({
+	getTraLoi: publicProcedure.input(z.object({ id: z.string() })).query(async ({ ctx, input }) => {
 		return await ctx.db.danhGia.findMany({
-			where: { MaTraLoi: input.maDanhGia },
+			where: { MaTraLoi: input.id },
 			include: { KhachHang: { include: { TaiKhoan: true } }, _count: { select: { TraLoiBoi: true } } },
 		});
 	}),
@@ -48,12 +48,12 @@ export const danhGiaRouter = createTRPCRouter({
 		await ctx.db.danhGia.delete({ where: { MaDanhGia: data.MaDanhGia } });
 	}),
 
-	danhGiaBanTin: publicProcedure
+	addComment: publicProcedure
 		.input(
 			z.object({
 				maSPM: z.string(),
-				noiDung: z.string().min(10, "Nội dung đánh giá không thể dưới 10 ký tự!"),
-				maTraLoi: z.string().optional(),
+				content: z.string().min(10, "Nội dung đánh giá không thể dưới 10 ký tự!"),
+				replyId: z.string().optional(),
 				maKhachHang: z.string().optional(),
 				tenKhachHang: z.string().optional(),
 				soSao: z.number().min(1).max(5),
@@ -63,10 +63,10 @@ export const danhGiaRouter = createTRPCRouter({
 			await ctx.db.danhGia.create({
 				data: {
 					MaSPM: input.maSPM,
-					NoiDungDG: input.noiDung,
+					NoiDungDG: input.content,
 					SoSao: input.soSao,
 
-					MaTraLoi: input.maTraLoi,
+					MaTraLoi: input.replyId,
 					MaKhachHang: input.maKhachHang,
 					TenKhachHang: input.tenKhachHang,
 				},

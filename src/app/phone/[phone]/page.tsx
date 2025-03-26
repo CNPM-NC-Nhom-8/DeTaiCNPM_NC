@@ -62,7 +62,7 @@ export default async function Page({ params }: PropsType) {
 	const data = await getPhoneFromParams(encodePhone);
 	if (!data) notFound();
 
-	void api.danhGia.getDanhGia.prefetchInfinite({ maSPM: data.MaSPM, limit: 5 });
+	void api.comment.getDanhGia.prefetchInfinite({ maSPM: data.MaSPM, limit: 5 });
 
 	return (
 		<main className="container flex max-w-6xl flex-grow flex-col gap-6 px-6 py-4">

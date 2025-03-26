@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, LoaderIcon, SearchX } from "lucide-react";
 import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
-import { type ComponentPropsWithoutRef, Suspense, use, useState } from "react";
+import { type ComponentPropsWithoutRef, Suspense, use, useEffect, useState } from "react";
 
 const pageSizes = [20, 40, 60, 80, 100] as const;
 
@@ -37,7 +37,13 @@ export function SearchContent({ className, hangSXPromise, isSignedIn, ...rest }:
 		<div {...rest} className={cn("flex flex-grow flex-col gap-2", className)}>
 			<section className="flex flex-shrink-0 flex-col gap-2">
 				<h3 className="text-lg font-semibold">
-					Kết quả tìm kiếm &quot;{debouncedSearchQuery}&quot; ({amount ?? "..."}){" "}
+					{amount ?? "..."} Kết quả tìm kiếm
+					<span> {debouncedSearchQuery.length > 0 && `cho "${debouncedSearchQuery}"`} </span>
+					<span>
+						{hangSXQuery &&
+							hangSXQuery.length > 0 &&
+							` - Hãng sản xuất: ${hangSX.find((item) => item.MaHSX === hangSXQuery)?.TenHSX}`}
+					</span>
 				</h3>
 
 				<div className="flex items-center gap-2">
@@ -81,14 +87,7 @@ export function SearchContent({ className, hangSXPromise, isSignedIn, ...rest }:
 				</div>
 			</section>
 
-			<Suspense
-				fallback={
-					<div className="flex flex-grow flex-col items-center justify-center gap-2">
-						<LoaderIcon size={20} className="animate-spin" />
-						<span>Đang tải dữ liệu...</span>
-					</div>
-				}
-			>
+			<Suspense fallback={<LoadingSpinner onFinish={setAmount} />}>
 				<ListSearchItem
 					pageSize={pageSize}
 					pageIndex={pageIndex}
@@ -103,6 +102,18 @@ export function SearchContent({ className, hangSXPromise, isSignedIn, ...rest }:
 	);
 }
 
+function LoadingSpinner({ onFinish }: { onFinish: (amount: number | null) => void }) {
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	useEffect(() => onFinish(null), []);
+
+	return (
+		<div className="flex flex-grow flex-col items-center justify-center gap-2">
+			<LoaderIcon size={20} className="animate-spin" />
+			<span>Đang tải dữ liệu...</span>
+		</div>
+	);
+}
+
 type ListSearchItemProps = ComponentPropsWithoutRef<"div"> & {
 	isSignedIn: boolean;
 	hangSXQuery: string;
@@ -110,7 +121,7 @@ type ListSearchItemProps = ComponentPropsWithoutRef<"div"> & {
 	pageSize: number;
 	pageIndex: number;
 	setPageIndex: (value: number | ((old: number) => number | null) | null) => void;
-	onFinish: (amount: number) => void;
+	onFinish: (amount: number | null) => void;
 };
 
 function ListSearchItem({
@@ -129,7 +140,7 @@ function ListSearchItem({
 	});
 
 	const totalPages = Math.ceil((searchData?.count ?? 0) / pageSize);
-	onFinish(searchData?.count ?? 0);
+	onFinish(searchData.count ?? 0);
 
 	return (
 		<>

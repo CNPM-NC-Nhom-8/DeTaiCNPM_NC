@@ -1,8 +1,8 @@
 "use client";
 
 import { ObjectKeys, cn, dayjs } from "@/utils/common";
-import { api } from "@/utils/trpc/react";
 import type { RouterInputs, RouterOutputs } from "@/utils/trpc/react";
+import { api } from "@/utils/trpc/react";
 
 import { TablePagination } from "../Pagination";
 import { LoaiKHActions } from "./LoaiKHActions";
@@ -34,7 +34,6 @@ import type { Role } from "@prisma/client";
 
 import { ChevronDown, ChevronDownIcon, RotateCcw, SearchIcon } from "lucide-react";
 import { type ChangeEvent, useCallback, useMemo, useState } from "react";
-import { toast } from "sonner";
 
 export type UserType = RouterOutputs["admin"]["getUsers"]["data"][number];
 

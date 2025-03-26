@@ -7,7 +7,9 @@ import { api } from "@/utils/trpc/server";
 import { redirect } from "next/navigation";
 
 export default async function Page() {
+	const user = await api.common.getCurrentUser();
 	const cart = await api.cart.getCartItems();
+
 	if (cart.length === 0) redirect("/cart");
 
 	return (
@@ -25,7 +27,7 @@ export default async function Page() {
 				))}
 			</section>
 
-			<PaymentFooter cart={cart} />
+			<PaymentFooter cart={cart} defaultAddress={user?.KhachHang?.DiaChi} />
 		</main>
 	);
 }
